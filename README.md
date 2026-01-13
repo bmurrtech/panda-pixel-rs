@@ -17,13 +17,13 @@ Native desktop app for macOS, Windows, and Linux.
 
 <p align="center">
   <picture>
-    <source srcset="assets/UI_1.webp" type="image/webp">
-    <img src="assets/UI_1.webp" width="700" alt="TinyPNG-rs Screenshot">
+    <source srcset="assets/UI_1.webp?v=2" type="image/webp">
+    <img src="assets/UI_1.webp?v=2" width="700" alt="TinyPNG-rs Screenshot">
   </picture>
   <br><br>
   <picture>
-    <source srcset="assets/UI_2.webp" type="image/webp">
-    <img src="assets/UI_2.webp" width="700" alt="TinyPNG-rs Screenshot 2">
+    <source srcset="assets/UI_2.webp?v=2" type="image/webp">
+    <img src="assets/UI_2.webp?v=2" width="700" alt="TinyPNG-rs Screenshot 2">
   </picture>
 </p>
 
