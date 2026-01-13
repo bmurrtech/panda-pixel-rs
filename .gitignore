@@ -1,6 +1,27 @@
 # Rust
 /target/
+**/target/
 Cargo.lock
+
+# Tauri specific
+src-tauri/target/
+src-tauri/WixTools/
+src-tauri/gen/  # Generated schemas
+
+# Build artifacts
+dist/
+*.app
+*.dmg
+*.msi
+*.exe
+*.deb
+*.rpm
+*.pkg
+*.AppImage
+*.snap
+
+# Trunk
+.trunk/
 
 # IDE
 .vscode/
@@ -15,9 +36,11 @@ Thumbs.db
 
 # Logs
 *.log
+.cursor/debug.log
 
 # Environment
 .env
+.env.example
 .env.local
 .env.*.local
 
@@ -26,28 +49,12 @@ test_images/compressed_*
 test_images/converted.*
 test_images/c_*
 
-# Build artifacts
-*.exe
-*.deb
-*.rpm
-*.pkg
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-
-# Temporary files
+# Temporary
 *.tmp
 *.temp
 create_test_png.py
 create_simple_png.rs
 
-# Distribution
-dist/
-
-# Project management (keep for this repo)
-# pm/ - commented out to keep PM docs
-releases/
+# Project management (local only)
+pm/
 releases/

@@ -1,0 +1,17 @@
+[build]
+target = "index.html"
+dist = "../dist"
+public-url = "./"
+
+[serve]
+# Note: addresses format may vary by Trunk version
+# Using address + port for compatibility (deprecation warning is harmless)
+address = "0.0.0.0"
+port = 8080
+open = false
+# Disable live-reload for Tauri builds (prevents WebSocket placeholder spam)
+reload = false
+
+[watch]
+watch = ["."]
+ignore = []

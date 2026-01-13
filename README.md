@@ -1,183 +1,194 @@
-![UI_2](https://github.com/bmurrtech/rust-tinypng-clone/blob/main/assets/UI_2.webp)
-![UI_1](https://github.com/bmurrtech/rust-tinypng-clone/blob/main/assets/UI_1.webp)
-# 🖼️ Rust TinyPNG
+<div align="center">
 
-A fast, private image compressor with TinyPNG-like behavior, built entirely in Rust. Features both a beautiful web UI and powerful CLI for local image compression with no external dependencies.
+# <img src="assets/icon.png" alt="TinyPNG-rs Logo" width="32" height="32" style="vertical-align:middle;margin-right:8px;"> TinyPNG-rs
+
+**Fast, 100% private image compression & conversion.**
+
+*TinyPNG clone — a Rust Red Panda alternative.*
+
+Built entirely in Rust with Tauri and Leptos.  
+Native desktop app for macOS, Windows, and Linux.
+
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
+[![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
+[![UI - Tauri v2](https://img.shields.io/badge/ui-Tauri_v2-FFC131.svg)](https://v2.tauri.app/)
+[![Frontend - Leptos](https://img.shields.io/badge/frontend-Leptos-red.svg)](https://leptos.dev/)
+[![License - MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+<p align="center">
+  <picture>
+    <source srcset="assets/UI_1.webp" type="image/webp">
+    <img src="assets/UI_1.webp" width="700" alt="TinyPNG-rs Screenshot">
+  </picture>
+  <br><br>
+  <picture>
+    <source srcset="assets/UI_2.webp" type="image/webp">
+    <img src="assets/UI_2.webp" width="700" alt="TinyPNG-rs Screenshot 2">
+  </picture>
+</p>
+
+</div>
+
+---
+
+## 💡 About
+
+TinyPNG-rs is a local-first desktop image compression tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
+
+- **Target Platforms**: macOS, Windows, Linux
+- **Architecture**: Native desktop application (no Electron overhead)
+- **Privacy**: 100% local processing - no uploads to external servers
+- **Performance**: Native Rust performance with parallel processing
+
+> [!NOTE] 
+> **Status: Alpha**
+
+---
 
 ## ✨ Features
 
-- **🚀 Fast**: Native Rust performance with parallel processing
-- **🔒 Private**: 100% local processing - no uploads to external servers
-- **🎨 Multiple Formats**: PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO, HEIC support
-- **💡 Smart Compression**: TinyPNG-like PNG quantization + oxipng optimization
-- **🌐 Web UI**: Modern, responsive interface with quality slider and format buttons
-- **⚡ CLI Mode**: Command-line interface for batch processing
-- **📦 Portable**: Single binary with embedded web assets
-- **🐳 Docker Ready**: Containerized deployment available
+- 🚀 **Fast**: Native Rust performance with parallel processing
+- 🔒 **Private**: 100% local processing - no uploads to external servers
+- 🎨 **Multiple Formats**: PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO, HEIC support
+- 💡 **Smart Compression**: TinyPNG-like PNG quantization + oxipng optimization
+- 🖥️ **Desktop App**: Native desktop application for macOS, Windows, and Linux
+- ⚡ **Modern UI**: Built with Leptos for reactive, type-safe frontend
+- 📦 **Single Binary**: Standalone desktop app with no dependencies
+- 🎯 **Batch Processing**: Compress multiple images with progress tracking
+- 🖱️ **Drag & Drop**: Native file drag & drop support
+- ⚙️ **Advanced Options**: oxipng optimization, PNG lossy compression
 
-## 🚀 Quick Start
+---
 
-### Option 1: Download Release Binary
-1. Download the latest release from [GitHub Releases](https://github.com/bmurrtech/rust-tinypng-clone/releases)
-2. Run the binary:
+## 🚀 Why TinyPNG-rs?
+
+Most image compression tools compromise on privacy, performance, or cost:
+
+- **Privacy**: Many tools upload your images to cloud servers
+- **Cost**: Cloud services charge per image or have usage limits
+- **Performance**: Web-based tools are slower and require internet
+- **Transparency**: Closed-source tools don't reveal their algorithms
+
+TinyPNG-rs eliminates these compromises:
+
+- **Local Processing**: All compression happens on your device
+- **Free & Open Source**: No usage limits or subscription fees
+- **Fast**: Native Rust performance with parallel processing
+- **Transparent**: Fully open source, auditable codebase
+
+---
+
+## ⚡ Quick Start
+
+### Build Prerequisites
+
+1. **Xcode Command Line Tools** (macOS):
    ```bash
-   ./rust_tinypng_clone
+   xcode-select --install
    ```
-3. Open your browser to `http://localhost:3030`
 
-### Option 2: Build from Source
-1. Install Rust from [rustup.rs](https://rustup.rs)
-2. Clone and build:
+2. **Rust**:
    ```bash
-   git clone https://github.com/bmurrtech/rust-tinypng-clone.git
-   cd rust-tinypng-clone
-   cargo build --release
-   ./target/release/rust_tinypng_clone
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
-### Option 3: Docker
+3. **WebAssembly Target**:
+   ```bash
+   rustup target add wasm32-unknown-unknown
+   ```
+
+4. **Trunk** (WASM bundler):
+   ```bash
+   cargo install trunk
+   ```
+
+5. **Tauri CLI**:
+   ```bash
+   cargo install tauri-cli --locked
+   ```
+
+### Running Locally
+
 ```bash
-# Build and run with Docker
-docker build -t rust-tinypng .
-docker run -p 3030:3030 rust-tinypng
+# 1. Clone the repository
+git clone https://github.com/bmurrtech/rust-tinypng-clone.git
+cd rust-tinypng-clone
+
+# 2. Run in development mode
+cargo tauri dev
 ```
+
+### Building for Release
+
+```bash
+cargo tauri build
+```
+
+The bundled application will be available at:  
+`src-tauri/target/release/bundle/`
+
+- **macOS**: `.app` bundle or `.dmg` installer
+- **Windows**: `.exe` installer or `.msi`
+- **Linux**: `.deb`, `.rpm`, or `.AppImage`
+
+---
 
 ## 💻 Usage
 
-### Web Interface
-1. Launch the application (it auto-opens your browser)
-2. Select images using the "📁 Select Images" button
-3. Choose compression level (Low/Mid/Max) and output format
-4. Click the Compress button
-5. Download compressed results (button changes to "Download All" after compression)
+### Desktop Application
 
-### CLI Mode
-```bash
-# Compress images in a directory
-./rust_tinypng_clone /path/to/images --output ./compressed
+1. **Select Images**: Click "📁 Select Images" or drag & drop files onto the window
+2. **Adjust Compression**: Use the slider to choose quality:
+   - **Low**: Best quality (70-90 range)
+   - **Mid**: Balanced (50-80 range) - *recommended*
+   - **Max**: Smallest file (20-60 range)
+3. **Choose Format**: Select output format (Auto, PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO)
+4. **Advanced Options** (optional):
+   - Enable oxipng optimization
+   - Enable PNG lossy compression
+5. **Compress**: Click "Compress" to process images
+6. **Download**: Click "📥 Download All" to save all compressed images to a folder
 
-# Convert to WebP
-./rust_tinypng_clone /path/to/images --to-webp
-
-# Convert to AVIF with custom quality
-./rust_tinypng_clone /path/to/images --to-avif --png-quality 40-70
-
-# Overwrite originals
-./rust_tinypng_clone /path/to/images --overwrite
-```
-
-## 🛠 API Documentation
-
-### Compression Endpoint
-```bash
-POST http://localhost:3030/api/compress
-```
-
-**Content-Type**: `multipart/form-data`
-
-**Parameters** (one of `file` or `media_url` required):
-- `file` *(required)*: Local image file path (e.g., `/path/to/file/image.png` or `C:\path\to\file\image.png`)
-- `media_url` *(required)*: Public URL to image (e.g., `https://example.com/image.png`, S3, GCP bucket, Azure Blob, etc.)
-- `compression_lvl` *(optional)*: Compression preset (`low`, `mid`, `max`)
-  - `low`: Best quality (70-90 range)
-  - `mid`: Balanced (50-80 range) - *default*
-  - `max`: Smallest file (20-60 range)
-- `output_format` *(optional)*: `original`, `png`, `jpeg`, `webp`, `avif`, `tiff`, `bmp`, `ico` (default: `webp`)
-- `oxipng` *(optional)*: Boolean (`true`/`false`, default: `true`)
-- `png_lossy` *(optional)*: Boolean (`true`/`false`, default: `true`)
-
-**Example with cURL**:
-```bash
-# Minimal request with local file (uses defaults: mid compression, webp output)
-curl -X POST http://localhost:3030/api/compress \
-  -F "file=@/path/to/file/image.png" \
-  -o compressed_image.webp
-
-# With compression level preset
-curl -X POST http://localhost:3030/api/compress \
-  -F "file=@image.png" \
-  -F "compression_lvl=max" \
-  -o compressed_image.webp
-
-# Compress from remote URL (S3, GCP, Azure Blob, etc.)
-curl -X POST http://localhost:3030/api/compress \
-  -F "media_url=https://example.s3.amazonaws.com/image.png" \
-  -F "compression_lvl=mid" \
-  -F "output_format=webp" \
-  -o compressed_image.webp
-
-# Custom output format and compression
-curl -X POST http://localhost:3030/api/compress \
-  -F "file=@image.png" \
-  -F "compression_lvl=low" \
-  -F "output_format=png" \
-  -F "oxipng=true" \
-  -F "png_lossy=true" \
-  -o compressed_image.png
-```
-
-**Example with Postman**:
-1. Set method to `POST`
-2. URL: `http://localhost:3030/api/compress`
-3. Body → form-data (use either `file` OR `media_url`):
-   - `file`: Select local image file or enter path like `/path/to/file/image.png` *(required if not using media_url)*
-   - `media_url`: Enter public URL like `https://example.com/image.png` *(required if not using file)*
-   - `compression_lvl`: `mid` (or `low`, `max`) - *default: mid*
-   - `output_format`: `webp` (optional, defaults to webp)
-   - `oxipng`: `true` (optional, default: true)
-   - `png_lossy`: `true` (optional, default: true)
-
-## 🧪 Testing
-
-Run the test suite:
-```bash
-cargo test
-```
-
-Test the API:
-```bash
-# Start the server
-./rust_tinypng_clone &
-
-# Test PNG compression
-curl -X POST http://localhost:3030/api/compress \
-  -F "file=@test_image.png" \
-  -F "output_format=original" \
-  -o compressed.png
-```
-
-## 🔧 Configuration
-
-Copy `.env.example` to `.env` and customize:
-```bash
-cp .env.example .env
-```
-
-Available settings:
-- `PORT`: Server port (default: 3030)
-- `RUST_LOG`: Log level (info, debug, warn, error)
-- `MAX_FILE_SIZE_MB`: Maximum file size limit
-- `DEFAULT_PNG_QUALITY`: Default quality range
+---
 
 ## 🧬 Supported Formats
 
 | Input | Output | Notes |
-|-------|-----------|-------|
+|-------|--------|-------|
 | PNG | PNG, WebP, AVIF, JPEG, TIFF, BMP, ICO | TinyPNG-like quantization |
 | JPEG | JPEG, WebP, AVIF, PNG, TIFF, BMP, ICO | mozjpeg optimization |
 | HEIC/HEIF | JPEG | Auto-converts like TinyPNG |
 | WebP | All formats | Full decode/re-encode |
 | TIFF, BMP | All formats | Standard image processing |
 
-## 📄 License
+---
 
-**CC BY-NC 4.0** - Creative Commons Attribution-NonCommercial 4.0 International
+## ⚡ Performance
 
-- ✅ **Share & Adapt**: Copy, redistribute, remix, and build upon the material
-- ✅ **Attribution Required**: Give appropriate credit and indicate changes
-- ❌ **No Commercial Use**: Cannot be used for commercial purposes
+- **PNG**: Uses libimagequant for TinyPNG-like compression + oxipng optimization
+- **JPEG**: mozjpeg encoder with progressive mode and trellis quantization
+- **WebP**: High-quality lossy encoding optimized for web
+- **AVIF**: Modern format with superior compression ratios
+- **Parallel Processing**: Automatic CPU detection for optimal performance
 
-For commercial licensing, please contact the author.
+---
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+cargo test
+```
+
+Tests cover:
+- PNG compression with various quality settings
+- JPEG compression
+- Format conversions (WebP, AVIF, TIFF, BMP, ICO)
+- Quality range parsing
+- Compression level presets
+
+---
 
 ## 🤝 Contributing
 
@@ -187,10 +198,37 @@ Contributions welcome! Please:
 3. Add tests for new functionality  
 4. Submit a pull request
 
-## ⚡ Performance Notes
+---
 
-- **PNG**: Uses libimagequant for TinyPNG-like compression + oxipng optimization
-- **JPEG**: mozjpeg encoder with progressive mode and trellis quantization
-- **WebP**: High-quality lossy encoding optimized for web
-- **AVIF**: Modern format with superior compression ratios
-- **Parallel Processing**: Automatic CPU detection for optimal performance
+## 📄 License
+
+**Apache License 2.0**
+
+- ✅ **Freedom to Use**: Permissive license for personal, academic, or commercial use
+- ✅ **Modification & Distribution**: Modify, redistribute, and use in proprietary projects
+- ✅ **Attribution Required**: Preserve license notices and provide attribution
+- ✅ **Patent Grant**: Includes express patent grant from contributors
+
+See [`LICENSE`](LICENSE) for full terms.
+
+---
+
+## 🛠️ Technical Details
+
+### Architecture
+
+- **Backend**: Tauri (Rust) for native desktop functionality
+- **Frontend**: Leptos (Rust compiled to WASM) for reactive UI
+- **Build**: Trunk for WASM bundling, Tauri for desktop packaging
+
+---
+
+## ⭐ Acknowledgments
+
+- **[Tauri](https://tauri.app/)**: For the lightweight desktop application framework
+- **[Leptos](https://leptos.dev/)**: For the reactive, type-safe frontend framework
+- **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
+- **[oxipng](https://github.com/shssoichiro/oxipng)**: For PNG optimization
+- **[mozjpeg](https://github.com/mozilla/mozjpeg)**: For JPEG compression
+
+---
