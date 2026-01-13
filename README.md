@@ -200,14 +200,35 @@ Contributions welcome! Please:
 
 ---
 
+## 🗺️ Roadmap
+
+### Upcoming Features
+
+#### AI-Powered Image Enhancement
+- **Image Upscaling**: Fast single image super-resolution (SISR) models for ultra high-quality upscaling
+- **Resolution Improvement**: AI-powered enhancement to improve image quality while compressing
+- **Smart Compression**: Combine compression with AI enhancement for smaller files with better visual quality
+- **ONNX Runtime Integration**: Using [ort](https://ort.pyke.io/) for optimized ONNX model inference
+  - Hardware acceleration support (CUDA, TensorRT, OpenVINO, QNN, CANN)
+  - Efficient I/O binding for optimal performance
+  - Cross-platform deployment including WASM support
+
+#### Technical Implementation
+- Integration with lightweight SISR models (e.g., Real-ESRGAN, ESRGAN variants)
+- ONNX model optimization via ort for Rust-native inference
+- GPU acceleration support for faster AI processing
+- Batch processing for AI-enhanced images
+- Quality presets for different upscaling factors (2x, 4x, 8x)
+
+---
+
 ## 📄 License
 
-**Apache License 2.0**
+**MIT License**
 
 - ✅ **Freedom to Use**: Permissive license for personal, academic, or commercial use
 - ✅ **Modification & Distribution**: Modify, redistribute, and use in proprietary projects
 - ✅ **Attribution Required**: Preserve license notices and provide attribution
-- ✅ **Patent Grant**: Includes express patent grant from contributors
 
 See [`LICENSE`](LICENSE) for full terms.
 
