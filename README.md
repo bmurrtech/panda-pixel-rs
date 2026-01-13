@@ -2,12 +2,12 @@
 
 # <img src="assets/icon.png" alt="TinyPNG-rs Logo" width="32" height="32" style="vertical-align:middle;margin-right:8px;"> TinyPNG-rs
 
-**Fast, 100% private image compression & conversion.**
+**Fast, 100% private, AI image compression, corrections, & conversion.**
 
 *TinyPNG clone — a Rust Red Panda alternative.*
 
-Built entirely in Rust with Tauri and Leptos.  
-Native desktop app for macOS, Windows, and Linux.
+Built in Rust with Tauri, Leptos, and ort.
+Native desktop app for macOS-first + Windows and Linux (experimental).
 
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
 [![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
@@ -200,8 +200,6 @@ Contributions welcome! Please:
 
 ---
 
-## 🗺️ Roadmap
-
 ### Upcoming Features
 
 #### AI-Powered Image Enhancement
@@ -224,23 +222,14 @@ Contributions welcome! Please:
 
 ## 📄 License
 
-**MIT License**
+**Apache License 2.0**
 
 - ✅ **Freedom to Use**: Permissive license for personal, academic, or commercial use
 - ✅ **Modification & Distribution**: Modify, redistribute, and use in proprietary projects
-- ✅ **Attribution Required**: Preserve license notices and provide attribution
+- ✅ **Attribution & NOTICE**: Preserve license notices, provide attribution, and include the NOTICE file (if any)
+- ✅ **Patent Grant**: Includes express grant of patent rights from contributors
 
 See [`LICENSE`](LICENSE) for full terms.
-
----
-
-## 🛠️ Technical Details
-
-### Architecture
-
-- **Backend**: Tauri (Rust) for native desktop functionality
-- **Frontend**: Leptos (Rust compiled to WASM) for reactive UI
-- **Build**: Trunk for WASM bundling, Tauri for desktop packaging
 
 ---
 
@@ -251,5 +240,6 @@ See [`LICENSE`](LICENSE) for full terms.
 - **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
 - **[oxipng](https://github.com/shssoichiro/oxipng)**: For PNG optimization
 - **[mozjpeg](https://github.com/mozilla/mozjpeg)**: For JPEG compression
+- **[ort](https://ort.pyke.io/)**: For ONNX Runtime integration and optimized ONNX model inference
 
 ---
