@@ -240,17 +240,18 @@ See [`LICENSE`](LICENSE) for full terms.
 ## ⭐ Acknowledgments
 
 - **[ort](https://ort.pyke.io/)**: ort is an open-source Rust binding for ONNX Runtime.
-- **[Tauri](https://tauri.app/)**: For the lightweight desktop application framework
-- **[Leptos](https://leptos.dev/)**: For the reactive, type-safe frontend framework
+- **[Tauri](https://tauri.app/)**: For Rust-based lightweight desktop application framework
+- **[Leptos](https://leptos.dev/)**: For Rust-compatible, reactive, type-safe frontend framework
 - **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
 - **[oxipng](https://github.com/shssoichiro/oxipng)**: For PNG optimization
 - **[mozjpeg](https://github.com/mozilla/mozjpeg)**: For JPEG compression
 - **[APISR: Anime Production Inspired Real-World Anime Super-Resolution](https://github.com/Kiteretsu77/APISR)**: For APISR SISR models
 - **[BiRefNet](https://github.com/ZhengPeng7/BiRefNet)**: For high-resolution AI background removal
 - **[ONNX Runtime](https://onnxruntime.ai/)**: The Open Neural Network Exchange (ONNX) is an open standard for representing machine learning models.
+- **[Optimum ONNX](https://github.com/huggingface/optimum-onnx)**: Enables exporting models to ONNX and running inference with ONNX Runtime.
 - **[onnxruntime-web](https://www.npmjs.com/package/onnxruntime-web)**: Enables WebGPU-accelerated ONNX inference in browsers—just set `device: 'webgpu'`.
-- **[Hugging Face ONNX Community](https://huggingface.co/onnx-community)**: For ONNX conversion tools and a growing library of ONNX format models.
-- **([Xenova](https://huggingface.co/Xenova))**: For ONNX upscaling models.
+- **[Hugging Face ONNX Community](https://huggingface.co/onnx-community)**: For a growing library of ONNX format models.
+- **[Xenova](https://huggingface.co/Xenova)**: For ONNX upscaling models and pioneering `Transformers.js`
 - **[Hugging Face Transformers.js](https://github.com/huggingface/transformers.js)**: For powerful WebGPU-accelerated model support (WebGL successor).
 
 ---
