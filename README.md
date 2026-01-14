@@ -202,21 +202,27 @@ Contributions welcome! Please:
 
 ### Upcoming Features
 
-#### AI-Powered Image Enhancement
-- **Image Upscaling**: Fast single image super-resolution (SISR) models for ultra high-quality upscaling
-- **Resolution Improvement**: AI-powered enhancement to improve image quality while compressing
-- **Smart Compression**: Combine compression with AI enhancement for smaller files with better visual quality
-- **ONNX Runtime Integration**: Using [ort](https://ort.pyke.io/) for optimized ONNX model inference
-  - Hardware acceleration support (CUDA, TensorRT, OpenVINO, QNN, CANN)
-  - Efficient I/O binding for optimal performance
-  - Cross-platform deployment including WASM support
+#### Experimental AI-Powered Image Enhancement
 
-#### Technical Implementation
-- Integration with lightweight SISR models (e.g., Real-ESRGAN, ESRGAN variants)
-- ONNX model optimization via ort for Rust-native inference
-- GPU acceleration support for faster AI processing
-- Batch processing for AI-enhanced images
-- Quality presets for different upscaling factors (2x, 4x, 8x)
+- [ ] **Image Upscaling**: Fast single image super-resolution (SISR) models for ultra high-quality upscaling
+  - [ ] **Real-World Images:**
+    - [ ] 2x & 4x upscale (e.g. [Xenova/swin2SR-classical-sr-x2-64](https://huggingface.co/Xenova/swin2SR-classical-sr-x2-64), [andrewdalpino/UltraZoom-2X](https://huggingface.co/andrewdalpino/UltraZoom-2X))
+  - [ ] **Anime Images:**
+    - [ ] 4x upscale ([Xenova/4x_APISR_GRL_GAN_generator-onnx](https://huggingface.co/Xenova/4x_APISR_GRL_GAN_generator-onnx))
+- [ ] **Resolution Improvement**: AI-powered enhancement to improve image quality while compressing
+
+- [ ] **ONNX Runtime Integration**: Using [ort](https://ort.pyke.io/) for optimized ONNX model inference
+  - [ ] Hardware acceleration support (CUDA, TensorRT, OpenVINO, QNN, CANN)
+  - [ ] Efficient I/O binding for optimal performance
+  - [ ] Cross-platform deployment including WASM support
+
+#### Local, Private AI-Powered Background Removal
+
+- [ ] **Commercial-Use Background Removal**: Local ONNX models for Bilateral Reference for High-Resolution Dichotomous Image Segmentation ([BiRefNet](https://github.com/ZhengPeng7/BiRefNet))
+  - [ ] Private and commercial-use allowed
+  - [ ] Optional mask output (mask can be created and saved, in addition to the removed-background image)
+- [ ] **Non-Commercial Background Removal**: Local ONNX model ([briaai/RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4)) for personal and non-commercial use
+  - [ ] Optional mask output (save the generated mask if user needs it)
 
 ---
 
