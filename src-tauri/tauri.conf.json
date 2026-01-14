@@ -4,7 +4,7 @@
   "identifier": "com.rusttinypng.app",
   "build": {
     "beforeDevCommand": "../dev-frontend.sh",
-    "beforeBuildCommand": "../build-frontend-wrapper.sh",
+    "beforeBuildCommand": "../build-frontend.sh",
     "frontendDist": "../dist"
   },
   "plugins": {},

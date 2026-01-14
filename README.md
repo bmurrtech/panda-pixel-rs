@@ -202,12 +202,12 @@ Contributions welcome! Please:
 
 ### Upcoming Features
 
-#### Experimental AI-Powered Image Enhancement
+#### Local, Private AI-Powered Image Enhancement
 
 - [ ] **Image Upscaling**: Fast single image super-resolution (SISR) models for ultra high-quality upscaling
   - [ ] **Real-World Images:**
     - [ ] 2x & 4x upscale (e.g. [Xenova/swin2SR-classical-sr-x2-64](https://huggingface.co/Xenova/swin2SR-classical-sr-x2-64), [andrewdalpino/UltraZoom-2X](https://huggingface.co/andrewdalpino/UltraZoom-2X))
-  - [ ] **Anime Images:**
+  - [ ] **APISR Images (Anime Production Inspired Super-Resolution):**
     - [ ] 4x upscale ([Xenova/4x_APISR_GRL_GAN_generator-onnx](https://huggingface.co/Xenova/4x_APISR_GRL_GAN_generator-onnx))
 - [ ] **Resolution Improvement**: AI-powered enhancement to improve image quality while compressing
 
@@ -219,10 +219,8 @@ Contributions welcome! Please:
 #### Local, Private AI-Powered Background Removal
 
 - [ ] **Commercial-Use Background Removal**: Local ONNX models for Bilateral Reference for High-Resolution Dichotomous Image Segmentation ([BiRefNet](https://github.com/ZhengPeng7/BiRefNet))
-  - [ ] Private and commercial-use allowed
   - [ ] Optional mask output (mask can be created and saved, in addition to the removed-background image)
 - [ ] **Non-Commercial Background Removal**: Local ONNX model ([briaai/RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4)) for personal and non-commercial use
-  - [ ] Optional mask output (save the generated mask if user needs it)
 
 ---
 
@@ -241,11 +239,18 @@ See [`LICENSE`](LICENSE) for full terms.
 
 ## ⭐ Acknowledgments
 
+- **[ort](https://ort.pyke.io/)**: ort is an open-source Rust binding for ONNX Runtime.
 - **[Tauri](https://tauri.app/)**: For the lightweight desktop application framework
 - **[Leptos](https://leptos.dev/)**: For the reactive, type-safe frontend framework
 - **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
 - **[oxipng](https://github.com/shssoichiro/oxipng)**: For PNG optimization
 - **[mozjpeg](https://github.com/mozilla/mozjpeg)**: For JPEG compression
-- **[ort](https://ort.pyke.io/)**: For ONNX Runtime integration and optimized ONNX model inference
+- **[APISR: Anime Production Inspired Real-World Anime Super-Resolution](https://github.com/Kiteretsu77/APISR)**: For APISR SISR models
+- **[BiRefNet](https://github.com/ZhengPeng7/BiRefNet)**: For high-resolution AI background removal
+- **[ONNX Runtime](https://onnxruntime.ai/)**: The Open Neural Network Exchange (ONNX) is an open standard for representing machine learning models.
+- **[onnxruntime-web](https://www.npmjs.com/package/onnxruntime-web)**: Enables WebGPU-accelerated ONNX inference in browsers—just set `device: 'webgpu'`.
+- **[Hugging Face ONNX Community](https://huggingface.co/onnx-community)**: For ONNX conversion tools and a growing library of ONNX format models.
+- **([Xenova](https://huggingface.co/Xenova))**: For ONNX upscaling models.
+- **[Hugging Face Transformers.js](https://github.com/huggingface/transformers.js)**: For powerful WebGPU-accelerated model support (WebGL successor).
 
 ---
