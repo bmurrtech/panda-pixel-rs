@@ -1,34 +1,110 @@
 ---
-description: "Two-phase Rust/Tauri build workflow: (1) fast verification builds to confirm it compiles; (2) final release builds with stricter Cargo/CI settings and publish-grade optimizations."
-globs:
-  - "**/Cargo.toml"
-  - "**/.github/workflows/*.yml"
-  - "**/.github/workflows/*.yaml"
-alwaysApply: true
+alwaysApply: false
 ---
+# Release Workflow Rule (Local Gate → Tagged CI Release)
 
-# Two-Phase Build Rule (Verify → Final Release)
+This repo uses a **local-first release gate**:
 
-This repo uses a **two-phase workflow**:
+1. **LOCAL RELEASE REHEARSAL (required):** you must be able to build locally before tagging.
+2. **CI RELEASE (tag-triggered):** GitHub Actions builds and publishes cross-platform artifacts when a version tag is pushed.
 
-1. **VERIFY BUILD** (fast): confirm it compiles/tests on CI without paying expensive link-time costs.
-2. **FINAL RELEASE** (polished): only after verify is green, enable ship-grade settings for tagged/publish builds.
+This approach intentionally avoids running CI validation on every push/PR. CI exists primarily to produce publishable installers across macOS/Windows/Linux.
 
 ---
 
-## Phase 1: VERIFY BUILD (fast CI checks)
+## Local Release Rehearsal (Required Before Tagging)
 
-**Purpose:** quickly validate compilation + tests across targets without expensive optimizations.
+**Purpose:** if `cargo tauri build` fails locally, CI will almost certainly fail too (just slower). Fix locally first.
 
-### Cargo.toml policy (VERIFY)
+### Local prerequisites (developer machine)
 
-- Keep `[profile.release]` **fast by default**.
-- Do **not** enable LTO by default in `Cargo.toml`.
-- Do **not** set `codegen-units = 1` in `Cargo.toml`.
-- Keep:
-  - `opt-level = 3` (default release behavior)
-  - `strip = true` (fine for most verify builds)
-  - `panic = "abort"` (fine for most apps)
+- Rust installed and up to date (match pinned toolchain where possible).
+- WASM target installed:
+  - `rustup target add wasm32-unknown-unknown`
+- Frontend build tooling installed (as required by the repo; typically `trunk`).
+- Platform-native deps installed:
+  - Linux requires Tauri GTK/WebKit deps and `nasm` if AVIF/rav1e is enabled.
+
+### Required local commands (clean rehearsal)
+
+From repo root:
+
+```bash
+cargo clean
+rustup target add wasm32-unknown-unknown
+./build-frontend.sh   # or ./build-frontend.ps1 on Windows
+cd src-tauri
+cargo tauri build
+```
+
+**Pass criteria:** build completes successfully and produces bundles (location may vary by workspace):
+
+- `target/release/bundle/` OR
+- `src-tauri/target/release/bundle/`
+
+---
+
+### Pinning Policy (Best Practice + Lifecycle)
+
+#### What we pin and why
+
+Release CI pins for reproducible builds:
+
+- **Rust toolchain** (e.g., 1.89.0)
+- **Build tools** (e.g., trunk, tauri-cli)
+- **Actions versions** (at least major tags; optionally SHA-pin for stronger supply-chain integrity)
+
+Pinning prevents “surprise breakage” from upstream tool updates during a release build.
+
+#### Pinning is not “set and forget”
+
+Pins must be reviewed and refreshed on a defined cadence, and the process must ensure supply-chain security and reproducibility.
+
+##### **Update cadence and rule**
+
+- **Every time you prepare a release:**  
+  - **You MUST run `cargo audit` for your local gate/rehearsal build, prior to CI and tagging.**  
+  - **You MUST update the `release.yml` workflow in `.github/workflows` with the latest compatible versions for all pinned tools (Rust, trunk, tauri-cli, etc.), unless a valid blocker prevents update.**
+
+- **Additionally:**
+  - **Review and bump pins if either:**
+    - A security advisory affects pinned tooling, or
+    - You need a platform/build fix for shipping.
+
+##### **Upgrade procedure (safe and repeatable)**
+
+1. Update pinned versions (Rust, trunk, tauri-cli, etc.) in `.github/workflows/release.yml`.
+2. Run the local gate rehearsal:
+    - `cargo clean && ./build-frontend.sh && cd src-tauri && cargo tauri build`
+3. Run `cargo audit` and resolve any reported vulnerabilities before proceeding.
+4. Cut a pre-release tag (e.g., `-rc.1` or `-alpha`) to validate CI across the OS matrix.
+5. Promote to a stable tag once CI is green and all audits pass.
+
+##### **When not to pin**
+
+- Avoid floating versions in release CI. Floating versions are OK **only** for:
+  - Exploratory or dev-only scripts.
+  - Non-release workflows that can tolerate breakage (this repo intentionally avoids those).
+
+---
+
+## CI Release (Tag-Triggered)
+
+**Trigger:** pushing a git tag matching `v*` (example: `v0.1.0-alpha`, `v1.2.3`).
+
+**Purpose:** produce distributable artifacts for the OS matrix and publish them to GitHub Releases.
+
+### Optimization + reproducibility policy
+
+- Pin Rust toolchain and cache Rust builds.
+- Pin and cache CLI tools (e.g., trunk, tauri-cli) for deterministic installs.
+- Apply ship-grade build knobs in CI only (do not bake them into Cargo.toml):
+  - ThinLTO recommended for published artifacts.
+  - `codegen-units=1` only if measured beneficial.
+
+### Cargo.toml policy
+
+Keep `[profile.release]` fast by default. Do **NOT** enable LTO or `codegen-units=1` by default in `Cargo.toml`.
 
 **Recommended baseline:**
 
@@ -37,112 +113,95 @@ This repo uses a **two-phase workflow**:
 opt-level = 3
 strip = true
 panic = "abort"
-# VERIFY builds: keep these OFF in Cargo.toml
+# Keep these OFF by default; apply via CI for tagged builds:
 # lto = "thin"
 # codegen-units = 1
 ```
 
-### GitHub Actions policy (VERIFY)
+---
 
-For PRs/branches:
+## Tagging and Release Commands (Canonical)
 
-- Run `cargo test` (and `cargo clippy` if used).
-- Optionally run `cargo build --release` without LTO overrides to ensure release-mode compiles.
-- Use Rust caching (Cargo registry/git + target/) to reduce minutes.
-- Avoid full OS packaging/signing in verify jobs unless required.
+### 1) Prepare release notes (annotated tag message)
 
-**VERIFY build command examples:**
+Create a temporary tag message file. Use **ONLY** the sections that apply; omit any section that is empty / N/A.
+
+**Example:**
 
 ```bash
-cargo build
-cargo test
-cargo build --release
+cd /Users/bmurrtech/Documents/Code/rust-tinypng-clone && cat > /tmp/tag_message.txt << 'EOF'
+vX.Y.Z[-label]
+
+## Highlights
+- <one-liner describing the most important outcome>
+- <second key outcome>
+
+## What's new
+- <new feature 1>
+- <new feature 2>
+
+## Improvements
+- <performance/ux/reliability improvements>
+
+## Breaking changes / required actions
+- <what users must do differently, if anything>
+
+## Known issues
+- <known issue 1>
+- <known issue 2>
+
+## Install notes
+- <signing/notarization expectations, OS warnings, special instructions>
+EOF
+
+cat /tmp/tag_message.txt
 ```
 
----
+**Section rubric (omit if N/A):**
 
-## Phase 2: FINAL RELEASE (ship-grade CI/publish)
+- **Highlights:** 2–4 bullets; highest-impact user-facing changes.
+- **What's new:** feature additions and new capabilities.
+- **Improvements:** performance, stability, UX polish, build/CI reliability.
+- **Breaking changes / required actions:** explicit user actions, config changes, removed behavior.
+- **Known issues:** only include real known issues; otherwise omit.
+- **Install notes:** signing/notarization status, expected OS warnings, installer formats, special steps.
 
-**Trigger:** Only after Phase 1 is green and you are ready to publish (e.g., tag, release, or manual dispatch).
-
-**Purpose:** produce the artifacts you distribute to users, with ship-grade optimizations.
-
-### Cargo.toml policy (FINAL RELEASE)
-
-- Prefer not changing Cargo.toml just to enable LTO.
-- Keep Cargo.toml stable and fast; apply release-only knobs via CI overrides.
-- Only add release-only profiles in Cargo.toml when they are:
-  - measured to help,
-  - consistently desired for every shipped artifact,
-  - and not better handled by CI overrides.
-
-### GitHub Actions policy (FINAL RELEASE)
-
-The release/publish workflow must:
-
-- build with ThinLTO (recommended default for shipping)
-- optionally force `codegen-units=1` only if measured beneficial
-- produce artifacts for the OS matrix (Linux/macOS/Windows) as needed
-
-**FINAL RELEASE build commands (preferred):**
-
-**ThinLTO:**
+### 2) Create an annotated tag (uses the release notes)
 
 ```bash
-cargo build --release --config profile.release.lto="thin"
+git status
+git pull --rebase
+
+# Create annotated tag with the message file
+git tag -a vX.Y.Z[-label] -F /tmp/tag_message.txt
+
+# Verify locally
+git show vX.Y.Z[-label]
 ```
 
-**ThinLTO + codegen-units=1 (only if justified):**
+### 3) Push the tag to trigger the CI release
 
 ```bash
-cargo build --release \
-  --config profile.release.lto="thin" \
-  --config profile.release.codegen-units=1
+git push origin vX.Y.Z[-label]
 ```
 
----
-
-## Required release workflow separation
-
-The repo must have a clear separation between:
-
-- **verify workflow** (fast, runs on PR/push),
-- **release workflow** (tag/manual, includes LTO overrides + artifact packaging).
-
-Release workflow must not run on every push to avoid wasting free minutes.
+This tag push triggers the release workflow, which builds artifacts and uploads them to the GitHub Release for that tag.
 
 ---
 
-## When to modify Cargo.toml vs CI YAML
+## Versioning Guidance
 
-**Prefer CI YAML overrides when:**
-
-- You only need LTO/extra settings for published artifacts.
-- You want verify builds to stay fast.
-- You want flexibility per target/OS.
-
-**Modify Cargo.toml only when:**
-
-- The optimization must apply to every release build everywhere (local + CI),
-- and you accept slower build times as the default.
+- Use `vMAJOR.MINOR.PATCH` for stable releases (e.g., `v1.2.3`).
+- Use `-alpha`, `-beta`, `-rc.N` for pre-releases (e.g., `v0.1.0-alpha`, `v1.0.0-rc.1`).
+- Prefer monotonic tags (do not re-use or move tags).
 
 ---
 
-## Decision checklist
+## Release Notes Quality Bar
 
-**If your goal is "does it compile?"**
+Release notes should be:
 
-Use Phase 1:
-
-- No LTO
-- No `codegen-units=1`
-- Run `cargo build --release` (optional) and tests
-
-**If your goal is "ship to users"**
-
-Use Phase 2:
-
-- Tag/release workflow
-- Enable ThinLTO via `--config profile.release.lto="thin"`
-- Package artifacts for OS targets
-- Only then consider `codegen-units=1` if measured worthwhile
+- **User-centered:** describe outcomes, not internal refactors (unless it affects users).
+- **Scannable:** short bullets, no wall-of-text.
+- **Honest:** include breaking changes and known issues when applicable.
+- **Safe:** call out unsigned build warnings clearly when relevant.

@@ -17,12 +17,20 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
 
+    env:
+      # Ensure sccache is used by Cargo for all build steps
+      RUSTC_WRAPPER: sccache
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Rust
+      - name: Setup Rust (pinned toolchain)
         uses: dtolnay/rust-toolchain@stable
+        with:
+          # Pin to specific version for reproducible builds
+          # Current: 1.89.0 (update when upgrading Rust)
+          toolchain: 1.89.0
 
       - name: Install sccache
         uses: mozilla-actions/sccache-action@v0.0.4
@@ -47,11 +55,19 @@ jobs:
             patchelf \
             nasm
 
-      - name: Install Trunk
-        run: cargo install trunk --locked
+      - name: Install Trunk (cached, pinned version)
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          # Pin trunk version for reproducible builds
+          # Current: 0.21.14 (check https://crates.io/crates/trunk for updates)
+          tool: trunk@0.21.14
 
-      - name: Install Tauri CLI
-        run: cargo install tauri-cli --locked
+      - name: Install Tauri CLI (cached, pinned version)
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          # Pin tauri-cli version matching Tauri 2.0
+          # Current: 2.5.0 (check https://crates.io/crates/tauri-cli for updates)
+          tool: tauri-cli@2.5.0
 
       - name: Build frontend (Unix)
         if: matrix.platform != 'windows-latest'
@@ -62,38 +78,53 @@ jobs:
         shell: pwsh
         run: ./build-frontend.ps1
 
-      - name: Build Tauri app
+      - name: Build Tauri app (release with ThinLTO)
         working-directory: src-tauri
-        run: cargo tauri build
-
-      - name: Debug bundle output
         shell: bash
         run: |
-          echo "=== ls target/release/bundle ==="
-          ls -R target/release/bundle 2>/dev/null || echo "target/release/bundle not found"
-          echo ""
-          echo "=== ls src-tauri/target/release/bundle ==="
-          ls -R src-tauri/target/release/bundle 2>/dev/null || echo "src-tauri/target/release/bundle not found"
+          # Configure ThinLTO for release build (mirrors local: cargo build --release --config profile.release.lto="thin")
+          # Force bash shell for cross-platform heredoc support (Windows runners have bash via Git for Windows)
+          mkdir -p .cargo
+          cat > .cargo/config.toml << 'EOF'
+          [profile.release]
+          lto = "thin"
+          EOF
+          # Build exactly as local: cargo tauri build
+          cargo tauri build
 
       - name: Package macOS .app as zip
         if: matrix.platform == 'macos-latest'
         shell: bash
         run: |
           set -euxo pipefail
+          APP_FOUND=false
+          DMG_FOUND=false
           # Search both possible locations
           for root in target/release/bundle src-tauri/target/release/bundle; do
             if [[ -d "$root" ]]; then
+              # Check for .dmg first (some bundler configs produce only .dmg)
+              if find "$root" -type f -name "*.dmg" -maxdepth 5 | head -n 1 | grep -q .; then
+                DMG_FOUND=true
+                echo "Found .dmg in $root"
+              fi
+              # Check for .app to package as zip
               APP_DIR=$(find "$root" -type d -name "*.app" -maxdepth 5 | head -n 1 || true)
               if [[ -n "$APP_DIR" ]]; then
                 echo "Found .app at: $APP_DIR"
                 ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "${APP_DIR}.zip"
                 echo "Created zip: ${APP_DIR}.zip"
+                APP_FOUND=true
                 break
               fi
             fi
           done
+          # Fail-fast: must find either .app (to zip) or .dmg
+          if [[ "$APP_FOUND" != "true" && "$DMG_FOUND" != "true" ]]; then
+            echo "ERROR: No .app bundle or .dmg found for macOS packaging"
+            exit 1
+          fi
 
-      - name: Find bundle artifacts
+      - name: Find bundle artifacts (fail-fast if empty)
         id: find-artifacts
         shell: bash
         run: |
@@ -124,11 +155,23 @@ jobs:
             ARTIFACTS=$(collect "\( -name \"*.deb\" -o -name \"*.rpm\" -o -name \"*.AppImage\" -o -name \"*.tar.gz\" \)")
           fi
           
-          # Convert to space-separated list for softprops
-          ARTIFACTS_ONE_LINE=$(echo "$ARTIFACTS" | tr '\n' ' ' | sed 's/  */ /g' | xargs || true)
+          # Fail-fast: artifacts must be non-empty
+          if [[ -z "$ARTIFACTS" ]]; then
+            echo "ERROR: No artifacts found for platform ${{ matrix.platform }}"
+            echo "Searched in: ${ROOTS[*]}"
+            exit 1
+          fi
           
-          echo "artifacts=$ARTIFACTS_ONE_LINE" >> "$GITHUB_OUTPUT"
-          echo "Found artifacts: $ARTIFACTS_ONE_LINE"
+          # Output multiline format (robust for paths with spaces, works with softprops)
+          # Use heredoc syntax for $GITHUB_OUTPUT to handle multiline values
+          {
+            echo "artifacts<<EOF"
+            echo "$ARTIFACTS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Found artifacts:"
+          echo "$ARTIFACTS"
 
       - name: Upload artifacts
         uses: softprops/action-gh-release@v1

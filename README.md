@@ -104,8 +104,26 @@ TinyPNG-rs eliminates these compromises:
 
 5. **Tauri CLI**:
    ```bash
-   cargo install tauri-cli --locked
+   cargo install tauri-cli@2.5.0 --locked
    ```
+
+### Build Scripts
+
+The project uses platform-specific build scripts for cross-platform support:
+
+**Unix (macOS/Linux):**
+- `dev-frontend.sh` - Development server (used by `cargo tauri dev`)
+- `build-frontend.sh` - Production build
+
+**Windows:**
+- `dev-frontend.ps1` - Development server (PowerShell)
+- `build-frontend.ps1` - Production build (PowerShell)
+
+**Cross-platform dispatchers (optional):**
+- `dev-frontend.cmd` - Auto-detects platform and calls appropriate script
+- `build-frontend.cmd` - Auto-detects platform and calls appropriate script
+
+**Note:** `cargo tauri dev` uses `dev-frontend.sh` by default. On Windows, this works if Git Bash is installed (common). For native PowerShell support, Windows users can run `dev-frontend.ps1` directly.
 
 ### Running Locally
 
