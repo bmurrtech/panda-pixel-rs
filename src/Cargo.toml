@@ -22,5 +22,6 @@ crate-type = ["cdylib", "rlib"]
 
 [profile.release]
 opt-level = "z"
-lto = true
-codegen-units = 1
+# LTO disabled for faster CI builds; enable only for final releases if needed
+# lto = true
+# codegen-units = 1  # Disabled for faster parallel compilation
