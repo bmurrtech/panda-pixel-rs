@@ -39,7 +39,7 @@ Thumbs.db
 *.log
 .cursor/debug.log
 
-# Cursor IDE (local only - keep out of VCS)
+# Cursor IDE
 .cursor/
 .cursor/*
 

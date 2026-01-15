@@ -132,33 +132,44 @@ jobs:
           
           # Search both possible target locations
           ROOTS=("target/release/bundle" "src-tauri/target/release/bundle")
+          ARTIFACTS=""
           
-          collect() {
-            local pattern="$1"
-            local found=""
-            for r in "${ROOTS[@]}"; do
-              if [[ -d "$r" ]]; then
-                found_files=$(find "$r" -type f $pattern 2>/dev/null || true)
-                if [[ -n "$found_files" ]]; then
-                  found="${found}${found_files}"$'\n'
-                fi
-              fi
-            done
-            echo "$found" | grep -v '^$' || true
-          }
+          # Use direct find commands per platform (no string interpolation to avoid quoting issues)
+          for root in "${ROOTS[@]}"; do
+            if [[ ! -d "$root" ]]; then
+              continue
+            fi
+            
+            if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
+              # macOS: search for .dmg and .app.zip files
+              found=$(find "$root" -type f \( -name "*.dmg" -o -name "*.app.zip" \) -maxdepth 5 2>/dev/null || true)
+            elif [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
+              # Windows: search for .exe and .msi files
+              found=$(find "$root" -type f \( -name "*.exe" -o -name "*.msi" \) -maxdepth 5 2>/dev/null || true)
+            else
+              # Linux: search for .deb, .rpm, and .AppImage files
+              found=$(find "$root" -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) -maxdepth 5 2>/dev/null || true)
+            fi
+            
+            if [[ -n "$found" ]]; then
+              ARTIFACTS="${ARTIFACTS}${found}"$'\n'
+            fi
+          done
           
-          if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
-            ARTIFACTS=$(collect "\( -name \"*.dmg\" -o -name \"*.app.zip\" \)")
-          elif [[ "${{ matrix.platform }}" == "windows-latest" ]]; then
-            ARTIFACTS=$(collect "\( -name \"*.exe\" -o -name \"*.msi\" \)")
-          else
-            ARTIFACTS=$(collect "\( -name \"*.deb\" -o -name \"*.rpm\" -o -name \"*.AppImage\" -o -name \"*.tar.gz\" \)")
-          fi
+          # Remove empty lines and trim
+          ARTIFACTS=$(echo "$ARTIFACTS" | grep -v '^$' || true)
           
           # Fail-fast: artifacts must be non-empty
           if [[ -z "$ARTIFACTS" ]]; then
             echo "ERROR: No artifacts found for platform ${{ matrix.platform }}"
             echo "Searched in: ${ROOTS[*]}"
+            echo "Listing bundle directory contents:"
+            for root in "${ROOTS[@]}"; do
+              if [[ -d "$root" ]]; then
+                echo "Contents of $root:"
+                find "$root" -type f -maxdepth 5 2>/dev/null | head -20 || true
+              fi
+            done
             exit 1
           fi
           
