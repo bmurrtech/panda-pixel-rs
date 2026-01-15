@@ -3,7 +3,7 @@
   "version": "0.1.0-alpha",
   "identifier": "com.rusttinypng.app",
   "build": {
-    "beforeDevCommand": "../dev-frontend.sh",
+    "beforeDevCommand": "./dev-frontend-wrapper.sh",
     "frontendDist": "../dist"
   },
   "plugins": {},
