@@ -1,0 +1,148 @@
+---
+description: "Two-phase Rust/Tauri build workflow: (1) fast verification builds to confirm it compiles; (2) final release builds with stricter Cargo/CI settings and publish-grade optimizations."
+globs:
+  - "**/Cargo.toml"
+  - "**/.github/workflows/*.yml"
+  - "**/.github/workflows/*.yaml"
+alwaysApply: true
+---
+
+# Two-Phase Build Rule (Verify → Final Release)
+
+This repo uses a **two-phase workflow**:
+
+1. **VERIFY BUILD** (fast): confirm it compiles/tests on CI without paying expensive link-time costs.
+2. **FINAL RELEASE** (polished): only after verify is green, enable ship-grade settings for tagged/publish builds.
+
+---
+
+## Phase 1: VERIFY BUILD (fast CI checks)
+
+**Purpose:** quickly validate compilation + tests across targets without expensive optimizations.
+
+### Cargo.toml policy (VERIFY)
+
+- Keep `[profile.release]` **fast by default**.
+- Do **not** enable LTO by default in `Cargo.toml`.
+- Do **not** set `codegen-units = 1` in `Cargo.toml`.
+- Keep:
+  - `opt-level = 3` (default release behavior)
+  - `strip = true` (fine for most verify builds)
+  - `panic = "abort"` (fine for most apps)
+
+**Recommended baseline:**
+
+```toml
+[profile.release]
+opt-level = 3
+strip = true
+panic = "abort"
+# VERIFY builds: keep these OFF in Cargo.toml
+# lto = "thin"
+# codegen-units = 1
+```
+
+### GitHub Actions policy (VERIFY)
+
+For PRs/branches:
+
+- Run `cargo test` (and `cargo clippy` if used).
+- Optionally run `cargo build --release` without LTO overrides to ensure release-mode compiles.
+- Use Rust caching (Cargo registry/git + target/) to reduce minutes.
+- Avoid full OS packaging/signing in verify jobs unless required.
+
+**VERIFY build command examples:**
+
+```bash
+cargo build
+cargo test
+cargo build --release
+```
+
+---
+
+## Phase 2: FINAL RELEASE (ship-grade CI/publish)
+
+**Trigger:** Only after Phase 1 is green and you are ready to publish (e.g., tag, release, or manual dispatch).
+
+**Purpose:** produce the artifacts you distribute to users, with ship-grade optimizations.
+
+### Cargo.toml policy (FINAL RELEASE)
+
+- Prefer not changing Cargo.toml just to enable LTO.
+- Keep Cargo.toml stable and fast; apply release-only knobs via CI overrides.
+- Only add release-only profiles in Cargo.toml when they are:
+  - measured to help,
+  - consistently desired for every shipped artifact,
+  - and not better handled by CI overrides.
+
+### GitHub Actions policy (FINAL RELEASE)
+
+The release/publish workflow must:
+
+- build with ThinLTO (recommended default for shipping)
+- optionally force `codegen-units=1` only if measured beneficial
+- produce artifacts for the OS matrix (Linux/macOS/Windows) as needed
+
+**FINAL RELEASE build commands (preferred):**
+
+**ThinLTO:**
+
+```bash
+cargo build --release --config profile.release.lto="thin"
+```
+
+**ThinLTO + codegen-units=1 (only if justified):**
+
+```bash
+cargo build --release \
+  --config profile.release.lto="thin" \
+  --config profile.release.codegen-units=1
+```
+
+---
+
+## Required release workflow separation
+
+The repo must have a clear separation between:
+
+- **verify workflow** (fast, runs on PR/push),
+- **release workflow** (tag/manual, includes LTO overrides + artifact packaging).
+
+Release workflow must not run on every push to avoid wasting free minutes.
+
+---
+
+## When to modify Cargo.toml vs CI YAML
+
+**Prefer CI YAML overrides when:**
+
+- You only need LTO/extra settings for published artifacts.
+- You want verify builds to stay fast.
+- You want flexibility per target/OS.
+
+**Modify Cargo.toml only when:**
+
+- The optimization must apply to every release build everywhere (local + CI),
+- and you accept slower build times as the default.
+
+---
+
+## Decision checklist
+
+**If your goal is "does it compile?"**
+
+Use Phase 1:
+
+- No LTO
+- No `codegen-units=1`
+- Run `cargo build --release` (optional) and tests
+
+**If your goal is "ship to users"**
+
+Use Phase 2:
+
+- Tag/release workflow
+- Enable ThinLTO via `--config profile.release.lto="thin"`
+- Package artifacts for OS targets
+- Only then consider `codegen-units=1` if measured worthwhile
