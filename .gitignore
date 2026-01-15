@@ -39,6 +39,10 @@ Thumbs.db
 *.log
 .cursor/debug.log
 
+# Cursor IDE (local only - keep out of VCS)
+.cursor/
+.cursor/*
+
 # Environment
 .env
 .env.example
@@ -59,5 +63,7 @@ create_simple_png.rs
 # Project management (local only)
 pm/
 releases/
-.github/
+
+# Note: .github/workflows/ MUST be tracked for CI to work
+# Do NOT ignore .github/ - only ignore .cursor/
 
