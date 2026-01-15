@@ -44,7 +44,8 @@ heif = ["libheif-rs"]
 
 [profile.release]
 opt-level = 3
-lto = true
-codegen-units = 1
+# LTO disabled for faster CI builds; enable only for final releases if needed
+# lto = true
+# codegen-units = 1  # Disabled for faster parallel compilation
 strip = true
 panic = "abort"

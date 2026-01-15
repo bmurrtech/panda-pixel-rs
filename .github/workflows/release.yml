@@ -24,8 +24,13 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.4
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
+        with:
+          cache-all-crates: true
 
       - name: Install WASM target
         run: rustup target add wasm32-unknown-unknown
