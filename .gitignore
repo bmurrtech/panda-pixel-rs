@@ -8,6 +8,10 @@ src-tauri/target/
 src-tauri/WixTools/
 src-tauri/gen/
 src-tauri/gen/**
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/WixTools/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/gen/**
 
 # Build artifacts
 dist/
@@ -61,7 +65,9 @@ create_test_png.py
 create_simple_png.rs
 
 # Project management (local only)
+# DO NOT CHANGE: pm/ and all contents are intentionally ignored
 pm/
+/pm/**
 releases/
 
 # Note: .github/workflows/ MUST be tracked for CI to work

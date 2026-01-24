@@ -1,0 +1,13 @@
+{
+  "name": "rust-tinypng-clone-web",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/style.css -o ./public/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0"
+  }
+}

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles that don't map well to Tailwind utilities */
+.quality-slider {
+    -webkit-appearance: none;
+}
+
+.quality-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+}
+
+.quality-slider::-moz-range-thumb {
+    border: none;
+}

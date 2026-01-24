@@ -1,0 +1,27 @@
+[package]
+name = "api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["multipart"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Shared crates
+domain = { path = "../../crates/domain" }
+compression = { path = "../../crates/compression" }
+
+# Utilities
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+reqwest = { version = "0.11", features = ["multipart"] }
+tokio-test = "0.4"
+image = { version = "0.25", default-features = false, features = ["png"] }

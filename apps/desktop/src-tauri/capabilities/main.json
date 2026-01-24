@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/capabilities.json",
+  "identifier": "main-capabilities",
+  "description": "Main application capabilities",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "core:event:allow-emit-to",
+    "core:event:allow-unlisten"
+  ]
+}

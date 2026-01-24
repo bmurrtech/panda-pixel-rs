@@ -257,12 +257,13 @@ See [`LICENSE`](LICENSE) for full terms.
 
 ## ⭐ Acknowledgments
 
-- **[ort](https://ort.pyke.io/)**: ort is an open-source Rust binding for ONNX Runtime.
-- **[Tauri](https://tauri.app/)**: For Rust-based lightweight desktop application framework
-- **[Leptos](https://leptos.dev/)**: For Rust-compatible, reactive, type-safe frontend framework
 - **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
 - **[oxipng](https://github.com/shssoichiro/oxipng)**: For PNG optimization
 - **[mozjpeg](https://github.com/mozilla/mozjpeg)**: For JPEG compression
+- **[Leptos](https://leptos.dev/)**: For Rust-compatible, reactive, type-safe frontend framework
+- **[Trunk](https://trunkrs.dev/)**: For building, bundling, & shipping of Rust WASM applications to the web
+- **[Tauri](https://tauri.app/)**: For Rust-based lightweight desktop application framework
+- **[ort](https://ort.pyke.io/)**: ort is an open-source Rust binding for ONNX Runtime.
 - **[APISR: Anime Production Inspired Real-World Anime Super-Resolution](https://github.com/Kiteretsu77/APISR)**: For APISR SISR models
 - **[BiRefNet](https://github.com/ZhengPeng7/BiRefNet)**: For high-resolution AI background removal
 - **[ONNX Runtime](https://onnxruntime.ai/)**: The Open Neural Network Exchange (ONNX) is an open standard for representing machine learning models.
