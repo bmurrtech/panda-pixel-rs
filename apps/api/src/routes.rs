@@ -48,7 +48,7 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
             // Extract extension
             let ext = filename
                 .split('.')
-                .last()
+                .next_back()
                 .unwrap_or("png")
                 .to_lowercase();
             
@@ -135,7 +135,7 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
             // Extract extension
             let ext = filename
                 .split('.')
-                .last()
+                .next_back()
                 .unwrap_or("png")
                 .to_lowercase();
             

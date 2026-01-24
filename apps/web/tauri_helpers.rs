@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-use serde_json;
 
 pub fn is_tauri_available() -> bool {
     let window = match web_sys::window() {

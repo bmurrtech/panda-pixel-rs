@@ -6,7 +6,7 @@ fn format_bytes(bytes: u64) -> String {
         return "0 B".to_string();
     }
     let k = 1024;
-    let sizes = vec!["B", "KB", "MB", "GB"];
+    let sizes = ["B", "KB", "MB", "GB"];
     let i = (bytes as f64).log(k as f64).floor() as usize;
     let i = i.min(sizes.len() - 1);
     format!("{:.1} {}", bytes as f64 / (k as f64).powi(i as i32), sizes[i])

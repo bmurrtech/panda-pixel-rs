@@ -117,10 +117,12 @@ pub async fn compress_image(
     let quality_range = compression_level_to_range(&compression_level);
 
     // Build compression options
-    let mut opts = CompressionOptions::default();
-    opts.png_quality = quality_range;
-    opts.oxipng = oxipng;
-    opts.png_lossy = png_lossy;
+    let mut opts = CompressionOptions {
+        png_quality: quality_range,
+        oxipng,
+        png_lossy,
+        ..Default::default()
+    };
 
     // Set output format
     match output_format.as_str() {
@@ -246,9 +248,15 @@ pub async fn save_files_to_folder(
     let mut saved_paths = Vec::new();
 
     for file in files {
-        let filename = file.get("filename")
+        let filename_str = file.get("filename")
             .and_then(|v| v.as_str())
             .ok_or_else(|| "Missing filename".to_string())?;
+        
+        // Sanitize filename to prevent path traversal
+        let filename = Path::new(filename_str)
+            .file_name()
+            .ok_or_else(|| "Invalid filename".to_string())?
+            .to_string_lossy();
         
         // Parse data array from JSON - it comes as a JSON array of numbers
         let data_array = file.get("data")
@@ -258,7 +266,7 @@ pub async fn save_files_to_folder(
         let data: Vec<u8> = serde_json::from_value(data_array.clone())
             .map_err(|e| format!("Failed to parse data for {}: {}", filename, e))?;
 
-        let file_path = folder_path.join(filename);
+        let file_path = folder_path.join(filename.as_ref());
         let data_len = data.len(); // Store length before move
         
         fs::write(&file_path, data)

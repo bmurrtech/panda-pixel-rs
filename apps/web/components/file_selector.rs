@@ -45,7 +45,7 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
             }
         }) as Box<dyn FnMut(_)>);
         
-        if let Err(_) = target.add_event_listener_with_callback("files-dropped", closure.as_ref().unchecked_ref()) {
+        if target.add_event_listener_with_callback("files-dropped", closure.as_ref().unchecked_ref()).is_err() {
             // Silent failure - event listener setup issue
         }
         closure.forget(); // Keep closure alive

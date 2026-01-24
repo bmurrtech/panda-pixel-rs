@@ -12,6 +12,7 @@ pub fn basename(path: &str) -> String {
 }
 
 /// Extract just the directory name from a path (for logging)
+#[allow(dead_code)]
 pub fn dirname(path: &str) -> String {
     Path::new(path)
         .parent()

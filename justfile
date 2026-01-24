@@ -34,10 +34,12 @@ run-api:
 
 # Build desktop app
 build-desktop:
+    mkdir -p dist
     cargo tauri build -p rust_tinypng_clone
 
 # Run desktop app (dev)
 run-desktop:
+    mkdir -p dist
     cargo tauri dev -p rust_tinypng_clone
 
 # Full validation (format, lint, test, check web)

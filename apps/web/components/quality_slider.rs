@@ -3,7 +3,7 @@ use crate::state::AppState;
 
 #[component]
 pub fn QualitySlider(state: AppState) -> impl IntoView {
-    let quality_values = vec!["low", "mid", "max"];
+    let quality_values = ["low", "mid", "max"];
     
     let slider_value = move || {
         match state.compression_level.get().as_str() {

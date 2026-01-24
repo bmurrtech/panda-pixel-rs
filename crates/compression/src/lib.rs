@@ -304,7 +304,7 @@ mod tests {
         
         let (compressed, mime_type) = result.unwrap();
         assert_eq!(mime_type, "image/png");
-        assert!(compressed.len() > 0);
+        assert!(!compressed.is_empty());
     }
 
     #[test]
@@ -317,6 +317,6 @@ mod tests {
         
         let (compressed, mime_type) = result.unwrap();
         assert_eq!(mime_type, "image/jpeg");
-        assert!(compressed.len() > 0);
+        assert!(!compressed.is_empty());
     }
 }

@@ -1,6 +1,6 @@
 [build]
 target = "index.html"
-dist = "../dist"
+dist = "../../dist"
 public-url = "./"
 
 # Build Tailwind CSS before Trunk build

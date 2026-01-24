@@ -85,7 +85,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                             "files": files_to_save,
                         });
                         let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
-                            .unwrap_or_else(|_| JsValue::NULL);
+                            .unwrap_or(JsValue::NULL);
                         
                         if utils::is_dev_mode() {
                             let file_count = files_to_save.len();
@@ -156,7 +156,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                         "data": result.data.clone(),
                     });
                     let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
-                        .unwrap_or_else(|_| JsValue::NULL);
+                            .unwrap_or(JsValue::NULL);
                     
                     if utils::is_dev_mode() {
                         let orig_name = utils::basename(&original_path);
@@ -200,7 +200,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                     "pngLossy": png_lossy,
                 });
                 let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
-                    .unwrap_or_else(|_| JsValue::NULL);
+                            .unwrap_or(JsValue::NULL);
                 
                 if utils::is_dev_mode() {
                     let file_count = file_paths.len();
