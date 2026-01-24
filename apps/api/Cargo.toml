@@ -26,3 +26,6 @@ http = "1.4.0"
 reqwest = { version = "0.11", features = ["multipart"] }
 tokio-test = "0.4"
 image = { version = "0.25", default-features = false, features = ["png"] }
+axum-test = "16"
+proptest = "1.9.0"
+insta = "1.46.1"

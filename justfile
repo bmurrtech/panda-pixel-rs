@@ -12,6 +12,22 @@ lint:
 test:
     cargo test --workspace
 
+# Run E2E tests with nextest
+test-e2e:
+    cargo nextest run --profile e2e
+
+# Run fuzz tests
+test-fuzz:
+    cargo test --release --package api --test fuzz_compression
+
+# Coverage report
+cov:
+    cargo llvm-cov --workspace --html --open
+
+# Benchmarks
+bench:
+    cargo bench
+
 # Check web compiles for WASM
 check-web:
     cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown
