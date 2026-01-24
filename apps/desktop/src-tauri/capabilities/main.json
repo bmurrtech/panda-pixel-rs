@@ -1,14 +1,19 @@
 {
   "$schema": "../gen/schemas/capabilities.json",
-  "identifier": "main-capabilities",
   "description": "Main application capabilities",
-  "windows": ["main"],
+  "identifier": "main-capabilities",
   "permissions": [
     "core:default",
     "core:event:default",
     "core:event:allow-listen",
     "core:event:allow-emit",
     "core:event:allow-emit-to",
-    "core:event:allow-unlisten"
+    "core:event:allow-unlisten",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-message"
+  ],
+  "windows": [
+    "main"
   ]
 }
