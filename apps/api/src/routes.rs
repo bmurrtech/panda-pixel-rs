@@ -100,7 +100,7 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
 
     let compressed_size = compressed_bytes.len();
     let savings_percent = if original_size > 0 {
-        ((original_size - compressed_size) as f64 / original_size as f64) * 100.0
+        ((original_size.saturating_sub(compressed_size)) as f64 / original_size as f64) * 100.0
     } else {
         0.0
     };
