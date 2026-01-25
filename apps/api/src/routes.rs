@@ -96,7 +96,15 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
     
     // Compress the image
     let (compressed_bytes, mime_type) = compress_image_inproc(&file_bytes, &ext, &options)
-        .map_err(|e| ApiError::InternalError(format!("Compression failed: {}", e)))?;
+        .map_err(|e| {
+            // Check if error is due to invalid image format or decoding
+            let msg = e.to_string();
+            if msg.contains("format") || msg.contains("decode") || msg.contains("load") {
+                ApiError::BadRequest(format!("Invalid image data: {}", msg))
+            } else {
+                ApiError::InternalError(format!("Compression failed: {}", msg))
+            }
+        })?;
 
     let compressed_size = compressed_bytes.len();
     let savings_percent = if original_size > 0 {
@@ -172,7 +180,7 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
             Ok((compressed_bytes, mime_type)) => {
                 let compressed_size = compressed_bytes.len();
                 let savings_percent = if original_size > 0 {
-                    ((original_size - compressed_size) as f64 / original_size as f64) * 100.0
+                    ((original_size.saturating_sub(compressed_size)) as f64 / original_size as f64) * 100.0
                 } else {
                     0.0
                 };
@@ -187,14 +195,15 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
             }
             Err(e) => {
                 // Continue with other files even if one fails
+                let msg = e.to_string();
+                tracing::error!("Failed to compress file: {}", msg);
                 results.push(CompressionResponse {
                     original_size,
                     compressed_size: 0,
                     savings_percent: 0.0,
-                    mime_type: String::new(),
-                    data: Vec::new(),
+                    mime_type: "application/error".to_string(),
+                    data: msg.into_bytes(),
                 });
-                tracing::error!("Failed to compress file: {}", e);
             }
         }
     }
