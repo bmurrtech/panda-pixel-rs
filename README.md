@@ -97,20 +97,9 @@ Panda Pixel eliminates these compromises:
 
 6. **Build the application**:
    ```bash
-   # Recommended: run from repository root
-   unset CI && cargo tauri build
+   cargo tauri build
    ```
-
-   Equivalent from `src-tauri/`:
-   ```bash
-   cd src-tauri
-   unset CI && cargo tauri build
-   ```
-
-   Build scripts are auto-resolved by Tauri hooks via:
-   - `scripts/build-frontend.sh` and `scripts/dev-frontend.sh` (repo root)
-   - `src-tauri/scripts/*` wrappers for `src-tauri` execution
-
+   
 For detailed setup (including dev mode, web build, and troubleshooting), see [CONTRIBUTING.md](docs/contributing.md).
 
 
