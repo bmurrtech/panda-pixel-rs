@@ -4,10 +4,7 @@
 
 **Fast, 100% private, AI image compression, corrections, & conversion.**
 
-*TinyPNG clone — a Rust Red Panda alternative.*
-
-Built in Rust with Tauri, Leptos, and ort.
-Native desktop app for macOS + Windows and Linux (experimental).
+*TinyPNG clone — a rust Red Panda alternative with bonus features!*
 
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
 [![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
@@ -33,7 +30,7 @@ Native desktop app for macOS + Windows and Linux (experimental).
 
 ## 💡 About
 
-panda-pixel-rs is a local-first desktop image compression tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
+Panda Pixel is a local-first desktop image compression, conversion, and correction tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
 
 - **Target Platforms**: macOS, Windows, Linux
 - **Architecture**: Native desktop application (no Electron overhead)
@@ -46,6 +43,7 @@ panda-pixel-rs is a local-first desktop image compression tool that performs all
 - 🔒 **Private**: 100% local processing - no uploads to external servers
 - 🎨 **Multiple Formats**: PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO, HEIC support
 - 💡 **Smart Compression**: TinyPNG-like PNG quantization + oxipng optimization
+- 🔄 **Format Conversion**: Convert between all supported formats while maintaining quality
 - 🖥️ **Desktop App**: Native desktop application for macOS, Windows, and Linux
 - ⚡ **Modern UI**: Built with Leptos for reactive, type-safe frontend
 - 📦 **Single Binary**: Standalone desktop app with no dependencies
@@ -53,7 +51,7 @@ panda-pixel-rs is a local-first desktop image compression tool that performs all
 - 🖱️ **Drag & Drop**: Native file drag & drop support
 - ⚙️ **Advanced Options**: oxipng optimization, PNG lossy compression
 
-## 🚀 Why panda-pixel-rs?
+## 🚀 Why Panda Pixel?
 
 Most image compression tools compromise on privacy, performance, or cost:
 
@@ -62,7 +60,7 @@ Most image compression tools compromise on privacy, performance, or cost:
 - **Performance**: Web-based tools are slower and require internet
 - **Transparency**: Closed-source tools don't reveal their algorithms
 
-panda-pixel-rs eliminates these compromises:
+Panda Pixel eliminates these compromises:
 
 - **Local Processing**: All compression happens on your device
 - **Free & Open Source**: No usage limits or subscription fees
@@ -71,13 +69,16 @@ panda-pixel-rs eliminates these compromises:
 
 ## ⚡ Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/bmurrtech/panda-pixel-rs.git
-cd panda-pixel-rs
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/bmurrtech/panda-pixel-rs.git
+   cd panda-pixel-rs
+   ```
 
-# Install Rust (if not already installed)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+2. **Install Rust** (if not already installed):
+   ```bash
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
 
 3. **WebAssembly Target**:
    ```bash
@@ -94,10 +95,21 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    cargo install tauri-cli@2.5.0 --locked
    ```
 
-# Build and run the desktop application
-cargo tauri build --bundles app
-./target/release/panda_pixel_rs_desktop
-```
+6. **Build the application**:
+   ```bash
+   # Recommended: run from repository root
+   unset CI && cargo tauri build
+   ```
+
+   Equivalent from `src-tauri/`:
+   ```bash
+   cd src-tauri
+   unset CI && cargo tauri build
+   ```
+
+   Build scripts are auto-resolved by Tauri hooks via:
+   - `scripts/build-frontend.sh` and `scripts/dev-frontend.sh` (repo root)
+   - `src-tauri/scripts/*` wrappers for `src-tauri` execution
 
 For detailed setup (including dev mode, web build, and troubleshooting), see [CONTRIBUTING.md](docs/contributing.md).
 
@@ -115,7 +127,7 @@ For detailed setup (including dev mode, web build, and troubleshooting), see [CO
 4. **Advanced Options** (optional):
    - Enable oxipng optimization
    - Enable PNG lossy compression
-5. **Compress**: Click "Compress" to process images
+5. **Compress/Convert**: Click "Compress/Convert" to process images
 6. **Download**: Click "📥 Download All" to save all compressed images to a folder
 
 ## 🧬 Supported Formats
@@ -151,15 +163,8 @@ Tests cover:
 - Quality range parsing
 - Compression level presets
 
-## 🤝 Contributing
 
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality  
-4. Submit a pull request
-
-### Upcoming Features
+## 🛣️ Roadmap
 
 #### Local, Private AI-Powered Image Enhancement
 
@@ -220,8 +225,6 @@ However:
 - **Openness:** This ensures improvements remain **open** and the community benefits from derivative work.
 
 If you want to use this project in a proprietary or closed-source product without AGPL obligations, a commercial license is available.
-
----
 
 #### Commercial / Proprietary Licensing
 

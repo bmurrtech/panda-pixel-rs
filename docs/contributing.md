@@ -80,6 +80,14 @@ panda-pixel-rs/
 unset CI && cargo tauri dev
 ```
 
+You can run this from either:
+- repo root (`cargo tauri dev`)
+- `src-tauri/` (`cd src-tauri && cargo tauri dev`)
+
+Tauri hook scripts are auto-resolved via:
+- `scripts/dev-frontend.sh` (repo root)
+- `src-tauri/scripts/dev-frontend.sh` (wrapper)
+
 **Key Features:**
 - **Hot Reload**: Automatically rebuilds and restarts when Rust code changes
 - **CSS Auto-build**: TailwindCSS compiles automatically via `beforeDevCommand`
@@ -122,10 +130,13 @@ cd apps/web && trunk serve
 
 #### Desktop Application
 ```bash
-# Build web frontend CSS first (required for desktop bundle)
-cd apps/web && npm run build:css
-
 # Build desktop application with installer
+unset CI && cargo tauri build
+```
+
+Equivalent from `src-tauri/`:
+```bash
+cd src-tauri
 unset CI && cargo tauri build
 ```
 

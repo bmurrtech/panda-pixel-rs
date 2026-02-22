@@ -504,15 +504,19 @@ The desktop app is local-only and uses Tauri commands (no HTTP calls in MVP).
 From the repository root:
 
 ```bash
-cargo tauri build --bundles app
+unset CI && cargo tauri build
 ```
 
 Equivalent from `src-tauri/`:
 
 ```bash
 cd src-tauri
-cargo tauri build --bundles app
+unset CI && cargo tauri build
 ```
+
+The desktop build hooks auto-resolve frontend scripts from either location:
+- `scripts/build-frontend.sh` (repo root)
+- `src-tauri/scripts/build-frontend.sh` (wrapper)
 
 **Expected output**: 
 - Compilation completes
@@ -526,14 +530,14 @@ For development and testing:
 
 ```bash
 # From repository root
-cargo tauri dev
+unset CI && cargo tauri dev
 ```
 
 Equivalent from `src-tauri/`:
 
 ```bash
 cd src-tauri
-cargo tauri dev
+unset CI && cargo tauri dev
 ```
 
 **Expected output**:
