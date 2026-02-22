@@ -34,28 +34,29 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
     let mut options = CompressionOptions::default();
 
     // Parse multipart form data
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        ApiError::BadRequest(format!("Failed to read multipart field: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| ApiError::BadRequest(format!("Failed to read multipart field: {}", e)))?
+    {
         let name = field.name().unwrap_or("").to_string();
-        
+
         if name == "file" {
             // Extract filename before consuming field
-            let filename = field.file_name()
-                .unwrap_or("image")
-                .to_string();
-            
+            let filename = field.file_name().unwrap_or("image").to_string();
+
             // Extract extension
             let ext = filename
                 .split('.')
                 .next_back()
                 .unwrap_or("png")
                 .to_lowercase();
-            
-            let data = field.bytes().await.map_err(|e| {
-                ApiError::BadRequest(format!("Failed to read file data: {}", e))
-            })?;
-            
+
+            let data = field
+                .bytes()
+                .await
+                .map_err(|e| ApiError::BadRequest(format!("Failed to read file data: {}", e)))?;
+
             file_data = Some((data.to_vec(), ext));
         } else if name == "png_quality" {
             if let Ok(value) = field.text().await {
@@ -93,7 +94,7 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
     })?;
 
     let original_size = file_bytes.len();
-    
+
     // Compress the image
     let (compressed_bytes, mime_type) = compress_image_inproc(&file_bytes, &ext, &options)
         .map_err(|e| {
@@ -108,7 +109,7 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
 
     let compressed_size = compressed_bytes.len();
     let savings_percent = if original_size > 0 {
-        ((original_size.saturating_sub(compressed_size)) as f64 / original_size as f64) * 100.0
+        ((compressed_size as f64 - original_size as f64) / original_size as f64) * 100.0
     } else {
         0.0
     };
@@ -129,28 +130,29 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
     let mut options = CompressionOptions::default();
 
     // Parse multipart form data
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        ApiError::BadRequest(format!("Failed to read multipart field: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| ApiError::BadRequest(format!("Failed to read multipart field: {}", e)))?
+    {
         let name = field.name().unwrap_or("").to_string();
-        
+
         if name.starts_with("file") {
             // Extract filename before consuming field
-            let filename = field.file_name()
-                .unwrap_or("image")
-                .to_string();
-            
+            let filename = field.file_name().unwrap_or("image").to_string();
+
             // Extract extension
             let ext = filename
                 .split('.')
                 .next_back()
                 .unwrap_or("png")
                 .to_lowercase();
-            
-            let data = field.bytes().await.map_err(|e| {
-                ApiError::BadRequest(format!("Failed to read file data: {}", e))
-            })?;
-            
+
+            let data = field
+                .bytes()
+                .await
+                .map_err(|e| ApiError::BadRequest(format!("Failed to read file data: {}", e)))?;
+
             files.push((data.to_vec(), ext));
         } else if name == "png_quality" {
             if let Ok(value) = field.text().await {
@@ -175,12 +177,13 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
 
     for (file_bytes, ext) in files {
         let original_size = file_bytes.len();
-        
+
         match compress_image_inproc(&file_bytes, &ext, &options) {
             Ok((compressed_bytes, mime_type)) => {
                 let compressed_size = compressed_bytes.len();
                 let savings_percent = if original_size > 0 {
-                    ((original_size.saturating_sub(compressed_size)) as f64 / original_size as f64) * 100.0
+                    ((compressed_size as f64 - original_size as f64) / original_size as f64)
+                        * 100.0
                 } else {
                     0.0
                 };

@@ -13,10 +13,14 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
     let button_text = move || {
         if state.has_compressed.get() {
             let count = state.results.get().len();
-            format!("📥 Download All ({} files)", count)
+            format!("💾 Save All ({} files)", count)
         } else {
             let count = state.files.get().len();
-            format!("Compress {} Image{}", count, if count != 1 { "s" } else { "" })
+            format!(
+                "Compress & Convert {} Image{}",
+                count,
+                if count != 1 { "s" } else { "" }
+            )
         }
     };
 
@@ -31,7 +35,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                 if utils::is_dev_mode() {
                     web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!("📥 Download All: {} files", results.len())));
                 }
-                
+
                 // First, ask user to select output folder
                 match tauri_helpers::invoke_tauri::<String>("select_output_folder", JsValue::NULL).await {
                     Ok(output_folder) => {
@@ -39,18 +43,18 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                             let folder_name = utils::basename(&output_folder);
                             web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!("✅ Selected folder: {}", folder_name)));
                         }
-                        
+
                         // Prepare files to save
                         let mut files_to_save = Vec::new();
                         for result in results.iter() {
                             let original_path = result.original_path.clone();
-                            
+
                             // Extract just the stem (filename without extension) from the original path
                             let stem = std::path::Path::new(&original_path)
                                 .file_stem()
                                 .and_then(|s| s.to_str())
                                 .unwrap_or("compressed");
-                            
+
                             // Determine output extension based on mime type
                             let ext = match result.mime_type.as_str() {
                                 "image/webp" => "webp",
@@ -67,26 +71,26 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                                         .unwrap_or("webp")
                                 }
                             };
-                            
+
                             // Build filename: stem + new extension (e.g., "image.webp")
                             let filename = format!("{}.{}", stem, ext);
-                            
+
                             // Convert Vec<u8> to JSON array of numbers
                             let data_array: Vec<u8> = result.data.clone();
-                            
+
                             files_to_save.push(serde_json::json!({
                                 "filename": filename,
                                 "data": data_array,
                             }));
                         }
-                        
+
                         let args_obj = serde_json::json!({
                             "outputFolder": output_folder,
                             "files": files_to_save,
                         });
                         let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
                             .unwrap_or_else(|_| JsValue::NULL);
-                        
+
                         if utils::is_dev_mode() {
                             let file_count = files_to_save.len();
                             let sample_names: Vec<String> = files_to_save.iter()
@@ -95,15 +99,28 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                                 .collect();
                             web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!("💾 Saving {} files to folder (sample: {:?})", file_count, sample_names)));
                         }
-                        
+
                         match tauri_helpers::invoke_tauri::<Vec<String>>("save_files_to_folder", args).await {
                             Ok(saved_paths) => {
                                 if utils::is_dev_mode() {
                                     web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!("✅ Saved {} files", saved_paths.len())));
                                 }
+                                state.error.set(None);
+                                state.status.set(Some(format!(
+                                    "Saved {} file(s) to {}",
+                                    saved_paths.len(),
+                                    utils::basename(&output_folder)
+                                )));
+                                let open_args_obj = serde_json::json!({
+                                    "path": output_folder,
+                                });
+                                let open_args = js_sys::JSON::parse(&serde_json::to_string(&open_args_obj).unwrap_or_default())
+                                    .unwrap_or_else(|_| JsValue::NULL);
+                                let _ = tauri_helpers::invoke_tauri::<()>("open_in_file_manager", open_args).await;
                             }
                             Err(e) => {
                                 web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(&format!("❌ Failed to save files: {}", e)));
+                                state.status.set(None);
                                 state.error.set(Some(e));
                             }
                         }
@@ -113,23 +130,24 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                         if !e.contains("cancelled") && !e.contains("Dialog cancelled") {
                             // Only show error if it's not a user cancellation
                             web_sys::console::error_1(&wasm_bindgen::JsValue::from_str(&format!("❌ Failed to select folder: {}", e)));
+                            state.status.set(None);
                             state.error.set(Some(e));
                         }
                         // If cancelled, silently return - user can try again
                     }
                 }
-                
+
                 // OLD APPROACH - per-file dialogs (kept for reference, but not used)
                 /*
                 for result in results.iter() {
                     let original_path = result.original_path.clone();
-                    
+
                     // Extract just the stem (filename without extension) from the original path
                     let stem = std::path::Path::new(&original_path)
                         .file_stem()
                         .and_then(|s| s.to_str())
                         .unwrap_or("compressed");
-                    
+
                     // Determine output extension based on mime type
                     let ext = match result.mime_type.as_str() {
                         "image/webp" => "webp",
@@ -146,10 +164,10 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                                 .unwrap_or("webp")
                         }
                     };
-                    
+
                     // Build filename: stem + new extension (e.g., "image.webp")
                     let default_name_with_ext = format!("{}.{}", stem, ext);
-                    
+
                     let args_obj = serde_json::json!({
                         "originalPath": original_path,
                         "defaultName": default_name_with_ext,
@@ -157,12 +175,12 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                     });
                     let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
                         .unwrap_or_else(|_| JsValue::NULL);
-                    
+
                     if utils::is_dev_mode() {
                         let orig_name = utils::basename(&original_path);
                         web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!("💾 Saving: {} -> {}", orig_name, default_name_with_ext)));
                     }
-                    
+
                     match tauri_helpers::invoke_tauri::<String>("save_file", args).await {
                         Ok(_) => {
                             // Success - silent in release
@@ -183,6 +201,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                 state.is_compressing.set(true);
                 state.progress.set(0.0);
                 state.error.set(None);
+                state.status.set(None);
 
                 // Use get_untracked() in async context to avoid reactive warnings
                 let files = state.files.get_untracked();
@@ -201,7 +220,7 @@ pub fn CompressButton(state: AppState) -> impl IntoView {
                 });
                 let args = js_sys::JSON::parse(&serde_json::to_string(&args_obj).unwrap_or_default())
                     .unwrap_or_else(|_| JsValue::NULL);
-                
+
                 if utils::is_dev_mode() {
                     let file_count = file_paths.len();
                     let sample_names: Vec<String> = file_paths.iter()

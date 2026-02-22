@@ -35,8 +35,14 @@ impl Default for CompressionOptions {
 /// Parse "50-80" into (min,max) u8
 pub fn parse_quality_range(s: &str) -> (u8, u8) {
     let parts: Vec<_> = s.split('-').collect();
-    let min = parts.first().and_then(|p| p.parse::<u8>().ok()).unwrap_or(50);
-    let max = parts.get(1).and_then(|p| p.parse::<u8>().ok()).unwrap_or(80);
+    let min = parts
+        .first()
+        .and_then(|p| p.parse::<u8>().ok())
+        .unwrap_or(50);
+    let max = parts
+        .get(1)
+        .and_then(|p| p.parse::<u8>().ok())
+        .unwrap_or(80);
     (min, max)
 }
 

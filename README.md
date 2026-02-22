@@ -1,29 +1,29 @@
 <div align="center">
 
-# <img src="assets/icon.png" alt="TinyPNG-rs Logo" width="32" height="32" style="vertical-align:middle;margin-right:8px;"> TinyPNG-rs
+# <img src="assets/icon.png" alt="panda-pixel-rs Logo" width="32" height="32" style="vertical-align:middle;margin-right:8px;"> panda-pixel-rs
 
 **Fast, 100% private, AI image compression, corrections, & conversion.**
 
 *TinyPNG clone — a Rust Red Panda alternative.*
 
 Built in Rust with Tauri, Leptos, and ort.
-Native desktop app for macOS-first + Windows and Linux (experimental).
+Native desktop app for macOS + Windows and Linux (experimental).
 
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
 [![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
 [![UI - Tauri v2](https://img.shields.io/badge/ui-Tauri_v2-FFC131.svg)](https://v2.tauri.app/)
 [![Frontend - Leptos](https://img.shields.io/badge/frontend-Leptos-red.svg)](https://leptos.dev/)
-[![License - Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![License - GNU AGPLv3](https://img.shields.io/badge/license-GNU%20AGPLv3-blue.svg)](LICENSE)
 
 <p align="center">
   <picture>
     <source srcset="assets/UI_1.webp?v=2" type="image/webp">
-    <img src="assets/UI_1.webp?v=2" width="700" alt="TinyPNG-rs Screenshot">
+    <img src="assets/UI_1.webp?v=2" width="700" alt="panda-pixel-rs Screenshot">
   </picture>
   <br><br>
   <picture>
     <source srcset="assets/UI_2.webp?v=2" type="image/webp">
-    <img src="assets/UI_2.webp?v=2" width="700" alt="TinyPNG-rs Screenshot 2">
+    <img src="assets/UI_2.webp?v=2" width="700" alt="panda-pixel-rs Screenshot 2">
   </picture>
 </p>
 
@@ -33,17 +33,12 @@ Native desktop app for macOS-first + Windows and Linux (experimental).
 
 ## 💡 About
 
-TinyPNG-rs is a local-first desktop image compression tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
+panda-pixel-rs is a local-first desktop image compression tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
 
 - **Target Platforms**: macOS, Windows, Linux
 - **Architecture**: Native desktop application (no Electron overhead)
 - **Privacy**: 100% local processing - no uploads to external servers
 - **Performance**: Native Rust performance with parallel processing
-
-> [!NOTE] 
-> **Status: Alpha**
-
----
 
 ## ✨ Features
 
@@ -58,9 +53,7 @@ TinyPNG-rs is a local-first desktop image compression tool that performs all pro
 - 🖱️ **Drag & Drop**: Native file drag & drop support
 - ⚙️ **Advanced Options**: oxipng optimization, PNG lossy compression
 
----
-
-## 🚀 Why TinyPNG-rs?
+## 🚀 Why panda-pixel-rs?
 
 Most image compression tools compromise on privacy, performance, or cost:
 
@@ -69,28 +62,22 @@ Most image compression tools compromise on privacy, performance, or cost:
 - **Performance**: Web-based tools are slower and require internet
 - **Transparency**: Closed-source tools don't reveal their algorithms
 
-TinyPNG-rs eliminates these compromises:
+panda-pixel-rs eliminates these compromises:
 
 - **Local Processing**: All compression happens on your device
 - **Free & Open Source**: No usage limits or subscription fees
 - **Fast**: Native Rust performance with parallel processing
 - **Transparent**: Fully open source, auditable codebase
 
----
-
 ## ⚡ Quick Start
 
-### Build Prerequisites
+```bash
+# Clone the repository
+git clone https://github.com/bmurrtech/panda-pixel-rs.git
+cd panda-pixel-rs
 
-1. **Xcode Command Line Tools** (macOS):
-   ```bash
-   xcode-select --install
-   ```
-
-2. **Rust**:
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
+# Install Rust (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 3. **WebAssembly Target**:
    ```bash
@@ -107,49 +94,13 @@ TinyPNG-rs eliminates these compromises:
    cargo install tauri-cli@2.5.0 --locked
    ```
 
-### Build Scripts
-
-The project uses platform-specific build scripts for cross-platform support:
-
-**Unix (macOS/Linux):**
-- `dev-frontend.sh` - Development server (used by `cargo tauri dev`)
-- `build-frontend.sh` - Production build
-
-**Windows:**
-- `dev-frontend.ps1` - Development server (PowerShell)
-- `build-frontend.ps1` - Production build (PowerShell)
-
-**Cross-platform dispatchers (optional):**
-- `dev-frontend.cmd` - Auto-detects platform and calls appropriate script
-- `build-frontend.cmd` - Auto-detects platform and calls appropriate script
-
-**Note:** `cargo tauri dev` uses `dev-frontend.sh` by default. On Windows, this works if Git Bash is installed (common). For native PowerShell support, Windows users can run `dev-frontend.ps1` directly.
-
-### Running Locally
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/bmurrtech/rust-tinypng-clone.git
-cd rust-tinypng-clone
-
-# 2. Run in development mode
-cargo tauri dev
+# Build and run the desktop application
+cargo tauri build --bundles app
+./target/release/panda_pixel_rs_desktop
 ```
 
-### Building for Release
+For detailed setup (including dev mode, web build, and troubleshooting), see [CONTRIBUTING.md](docs/contributing.md).
 
-```bash
-cargo tauri build
-```
-
-The bundled application will be available at:  
-`src-tauri/target/release/bundle/`
-
-- **macOS**: `.app` bundle or `.dmg` installer
-- **Windows**: `.exe` installer or `.msi`
-- **Linux**: `.deb`, `.rpm`, or `.AppImage`
-
----
 
 ## 💻 Usage
 
@@ -167,8 +118,6 @@ The bundled application will be available at:
 5. **Compress**: Click "Compress" to process images
 6. **Download**: Click "📥 Download All" to save all compressed images to a folder
 
----
-
 ## 🧬 Supported Formats
 
 | Input | Output | Notes |
@@ -179,8 +128,6 @@ The bundled application will be available at:
 | WebP | All formats | Full decode/re-encode |
 | TIFF, BMP | All formats | Standard image processing |
 
----
-
 ## ⚡ Performance
 
 - **PNG**: Uses libimagequant for TinyPNG-like compression + oxipng optimization
@@ -188,8 +135,6 @@ The bundled application will be available at:
 - **WebP**: High-quality lossy encoding optimized for web
 - **AVIF**: Modern format with superior compression ratios
 - **Parallel Processing**: Automatic CPU detection for optimal performance
-
----
 
 ## 🧪 Testing
 
@@ -206,8 +151,6 @@ Tests cover:
 - Quality range parsing
 - Compression level presets
 
----
-
 ## 🤝 Contributing
 
 Contributions welcome! Please:
@@ -215,8 +158,6 @@ Contributions welcome! Please:
 2. Create a feature branch
 3. Add tests for new functionality  
 4. Submit a pull request
-
----
 
 ### Upcoming Features
 
@@ -240,21 +181,6 @@ Contributions welcome! Please:
   - [ ] Optional mask output (mask can be created and saved, in addition to the removed-background image)
 - [ ] **Non-Commercial Background Removal**: Local ONNX model ([briaai/RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4)) for personal and non-commercial use
 
----
-
-## 📄 License
-
-**Apache License 2.0**
-
-- ✅ **Freedom to Use**: Permissive license for personal, academic, or commercial use
-- ✅ **Modification & Distribution**: Modify, redistribute, and use in proprietary projects
-- ✅ **Attribution & NOTICE**: Preserve license notices, provide attribution, and include the NOTICE file (if any)
-- ✅ **Patent Grant**: Includes express grant of patent rights from contributors
-
-See [`LICENSE`](LICENSE) for full terms.
-
----
-
 ## ⭐ Acknowledgments
 
 - **[libimagequant](https://pngquant.org/lib/)**: For TinyPNG-like PNG quantization
@@ -273,4 +199,54 @@ See [`LICENSE`](LICENSE) for full terms.
 - **[Xenova](https://huggingface.co/Xenova)**: For ONNX upscaling models and pioneering `Transformers.js`
 - **[Hugging Face Transformers.js](https://github.com/huggingface/transformers.js)**: For powerful WebGPU-accelerated model support (WebGL successor).
 
+## 📄 License
+
+Open source under the **GNU AGPLv3**—see [LICENSE](LICENSE) for terms.
+
+### License Philosophy (Plain English)
+
+This project is licensed under GNU AGPLv3.
+
+That means:
+
+- **You may use it commercially.**
+- **You may build a paid SaaS product with it.**
+- **You may modify it.**
+
+However:
+
+- **Hosted Service or SaaS:** If you run this software as part of a hosted service or SaaS product, you must provide your users access to the corresponding source code, including any modifications you have made.
+- **Distribution:** If you distribute this software (or a derivative), you must include the same license and provide source code.
+- **Openness:** This ensures improvements remain **open** and the community benefits from derivative work.
+
+If you want to use this project in a proprietary or closed-source product without AGPL obligations, a commercial license is available.
+
 ---
+
+#### Commercial / Proprietary Licensing
+
+Need any of the following?
+- Commercial use **without** copyleft obligations
+- Proprietary or closed-source usage
+- SaaS or hosted deployment without source disclosure
+- Embedded or internal distribution without attribution
+
+**Commercial licenses are available.**
+
+These licenses waive AGPL-3.0 copyleft requirements, including:
+- No obligation to publish source code
+- No public attribution requirements
+- SaaS, hosted, and embedded use allowed
+
+**How to obtain a commercial license:**
+_Open a GitHub Issue in this project’s repository to contact the maintainers for licensing and pricing details._
+
+## 🤝 Contributing
+
+Please see our [contributing guide](docs/contributing.md) for:
+
+- Development setup instructions
+- Building from source (detailed)
+- Code quality standards
+- Testing procedures
+- Pull request guidelines

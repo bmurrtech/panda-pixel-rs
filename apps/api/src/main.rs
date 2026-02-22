@@ -7,7 +7,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     let config = Config::from_env()?;
     config.validate()?;
-    
+
     tracing_subscriber::fmt()
         .with_env_filter(&config.rust_log)
         .init();

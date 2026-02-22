@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn FormatSelector(state: AppState) -> impl IntoView {

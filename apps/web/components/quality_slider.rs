@@ -1,26 +1,22 @@
-use leptos::prelude::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn QualitySlider(state: AppState) -> impl IntoView {
     let quality_values = ["low", "mid", "max"];
-    
-    let slider_value = move || {
-        match state.compression_level.get().as_str() {
-            "low" => 1,
-            "mid" => 2,
-            "max" => 3,
-            _ => 2,
-        }
+
+    let slider_value = move || match state.compression_level.get().as_str() {
+        "low" => 1,
+        "mid" => 2,
+        "max" => 3,
+        _ => 2,
     };
 
-    let quality_label = move || {
-        match state.compression_level.get().as_str() {
-            "low" => "Low (Best Quality)",
-            "mid" => "Mid (Recommended)",
-            "max" => "Max (Smallest File)",
-            _ => "Mid (Recommended)",
-        }
+    let quality_label = move || match state.compression_level.get().as_str() {
+        "low" => "Low (Best Quality)",
+        "mid" => "Mid (Recommended)",
+        "max" => "Max (Smallest File)",
+        _ => "Mid (Recommended)",
     };
 
     view! {

@@ -10,12 +10,12 @@ pub fn App() -> impl IntoView {
         <div class="container">
             <div class="header">
                 <h1>
-                    <img 
-                        src="./assets/icon_32x32.png" 
-                        alt="TinyPNG-rs Logo" 
+                    <img
+                        src="./assets/icon_32x32.png"
+                        alt="Panda Pixel Logo"
                         class="header-logo"
                     />
-                    "TinyPNG-rs"
+                    "Panda Pixel"
                 </h1>
                 <p>"Fast, 100% private image compression"</p>
             </div>
@@ -26,6 +26,7 @@ pub fn App() -> impl IntoView {
             <AdvancedOptions state=app_state.clone() />
             <CompressButton state=app_state.clone() />
             <ProgressBar state=app_state.clone() />
+            <StatusDisplay state=app_state.clone() />
             <ErrorDisplay state=app_state.clone() />
             <ResultsList state=app_state.clone() />
         </div>

@@ -1,17 +1,17 @@
 {
-  "productName": "TinyPNG-rs",
+  "productName": "Panda Pixel",
   "version": "0.1.0-alpha",
-  "identifier": "com.rusttinypng.app",
+  "identifier": "com.pandapixel.desktop",
   "build": {
-    "beforeDevCommand": "./dev-frontend.sh",
+    "beforeDevCommand": "sh -c 'if [ -x ./scripts/dev-frontend.sh ]; then ./scripts/dev-frontend.sh; elif [ -x ../scripts/dev-frontend.sh ]; then ../scripts/dev-frontend.sh; elif [ -x ../../scripts/dev-frontend.sh ]; then ../../scripts/dev-frontend.sh; else echo \"dev-frontend.sh not found\" >&2; exit 127; fi'",
+    "beforeBuildCommand": "sh -c 'if [ -x ./scripts/build-frontend.sh ]; then ./scripts/build-frontend.sh; elif [ -x ../scripts/build-frontend.sh ]; then ../scripts/build-frontend.sh; elif [ -x ../../scripts/build-frontend.sh ]; then ../../scripts/build-frontend.sh; else echo \"build-frontend.sh not found\" >&2; exit 127; fi'",
     "frontendDist": "../dist"
   },
-  "plugins": {},
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "TinyPNG-rs",
+        "title": "Panda Pixel",
         "width": 800,
         "height": 900,
         "resizable": true,
@@ -21,13 +21,12 @@
       }
     ],
     "security": {
-      "csp": null,
-      "dangerousDisableAssetCspModification": false
+      "csp": null
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": "app",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

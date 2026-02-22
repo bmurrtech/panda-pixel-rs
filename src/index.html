@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TinyPNG-rs</title>
+    <title>Panda Pixel</title>
     <link data-trunk rel="css" href="style.css"/>
     <link data-trunk rel="copy-dir" href="../assets"/>
 </head>
@@ -13,18 +13,18 @@
         window.addEventListener('DOMContentLoaded', () => {
             // Minimal startup logging
             if (window.__TAURI__) {
-                console.log('🚀 TinyPNG-rs starting (Tauri mode)');
+                console.log('🚀 Panda Pixel starting (Tauri mode)');
             } else {
-                console.log('🚀 TinyPNG-rs starting (browser mode)');
+                console.log('🚀 Panda Pixel starting (browser mode)');
             }
-            
+
             // Keyboard shortcut to open devtools (F12 or Ctrl+Shift+I)
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
                     e.preventDefault();
                     if (window.__TAURI__) {
-                        const invoke = window.__TAURI__.core?.invoke || 
-                                      window.__TAURI__.tauri?.invoke || 
+                        const invoke = window.__TAURI__.core?.invoke ||
+                                      window.__TAURI__.tauri?.invoke ||
                                       window.__TAURI__.invoke;
                         if (invoke) {
                             invoke('open_devtools').catch(err => {
@@ -37,7 +37,7 @@
                     }
                 }
             });
-            
+
             // Set up ResizeObserver for window auto-resize
             const container = document.querySelector('.container');
             if (container) {
@@ -46,13 +46,13 @@
                         const rect = entry.contentRect;
                         const width = rect.width;
                         const height = rect.height;
-                        
+
                         // Silent resize logging
-                        
+
                         // Call Tauri command if available
                         if (window.__TAURI__) {
-                            const invoke = window.__TAURI__.core?.invoke || 
-                                          window.__TAURI__.tauri?.invoke || 
+                            const invoke = window.__TAURI__.core?.invoke ||
+                                          window.__TAURI__.tauri?.invoke ||
                                           window.__TAURI__.invoke;
                             if (invoke) {
                                 invoke('resize_window', {
@@ -63,16 +63,16 @@
                         }
                     }
                 });
-                
+
                 resizeObserver.observe(container);
             }
-            
+
             // Set up Tauri native drag & drop events
             if (window.__TAURI__) {
                 const eventApi = window.__TAURI__.event || window.__TAURI__.core?.event;
                 if (eventApi?.listen) {
                     // Drag & drop listeners set up silently
-                    
+
                     // Listen for drag-drop event (files dropped on window)
                     eventApi.listen('tauri://drag-drop', (event) => {
                         if (event.payload?.paths && Array.isArray(event.payload.paths)) {
@@ -82,17 +82,17 @@
                                 return parts[parts.length - 1] || p;
                             });
                             console.log(`📦 drag-drop: ${filePaths.length} files (sample: ${sample.join(', ')})`);
-                            
+
                             // Call Tauri command to process dropped files
-                            const invoke = window.__TAURI__.core?.invoke || 
-                                          window.__TAURI__.tauri?.invoke || 
+                            const invoke = window.__TAURI__.core?.invoke ||
+                                          window.__TAURI__.tauri?.invoke ||
                                           window.__TAURI__.invoke;
                             if (invoke) {
                                 invoke('handle_dropped_files', { filePaths: filePaths })
                                     .then((files) => {
                                         console.log(`✅ Processed ${files.length} dropped files`);
-                                        window.dispatchEvent(new CustomEvent('files-dropped', { 
-                                            detail: { files: files } 
+                                        window.dispatchEvent(new CustomEvent('files-dropped', {
+                                            detail: { files: files }
                                         }));
                                     })
                                     .catch(err => {
@@ -101,7 +101,7 @@
                             }
                         }
                     }).catch(() => {});
-                    
+
                     // Only log drag-enter (not drag-over spam)
                     let dragEnterCount = 0;
                     eventApi.listen('tauri://drag-enter', (e) => {

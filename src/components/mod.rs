@@ -5,6 +5,7 @@ pub mod advanced_options;
 pub mod compress_button;
 pub mod progress_bar;
 pub mod error_display;
+pub mod status_display;
 pub mod results_list;
 
 pub use file_selector::FileSelector;
@@ -14,4 +15,5 @@ pub use advanced_options::AdvancedOptions;
 pub use compress_button::CompressButton;
 pub use progress_bar::ProgressBar;
 pub use error_display::ErrorDisplay;
+pub use status_display::StatusDisplay;
 pub use results_list::ResultsList;

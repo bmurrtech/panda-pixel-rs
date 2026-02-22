@@ -37,6 +37,7 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
                                     state_clone.has_compressed.set(false);
                                     state_clone.progress.set(0.0);
                                     state_clone.error.set(None);
+                                    state_clone.status.set(None);
                                 }
                             }
                         }
@@ -44,7 +45,7 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
                 }
             }
         }) as Box<dyn FnMut(_)>);
-        
+
         if let Err(_) = target.add_event_listener_with_callback("files-dropped", closure.as_ref().unchecked_ref()) {
             // Silent failure - event listener setup issue
         }
@@ -58,8 +59,9 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
         state.has_compressed.set(false);
         state.progress.set(0.0);
         state.error.set(None);
+        state.status.set(None);
     };
-    
+
     let select_files = move || {
         spawn_local(async move {
             match tauri_helpers::invoke_tauri::<Vec<crate::state::FileInfo>>("select_files", JsValue::NULL).await {
@@ -80,8 +82,8 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
     };
 
     view! {
-        <div 
-            class="upload-section" 
+        <div
+            class="upload-section"
             class:disabled=move || state.is_compressing.get()
         >
             <button
@@ -98,7 +100,7 @@ pub fn FileSelector(state: AppState) -> impl IntoView {
                 "📁 Select Images"
             </button>
             <p style="color: #d1d5db; font-size: 0.875rem;">
-                "PNG, JPEG, BMP, TIFF, WebP, HEIC supported"
+                "PNG, JPEG, BMP, TIFF, WebP, ICO supported"
             </p>
         </div>
     }

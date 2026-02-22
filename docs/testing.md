@@ -73,11 +73,98 @@ cargo check --workspace
 
 ---
 
+## Prek Setup (Pre-Commit Quality Gates)
+
+The repository uses Prek as the invariant enforcement layer and CI gate. Prek runs fast, deterministic checks that must pass before code can be committed or merged.
+
+### Step 1: Install Prek
+Prek is a modern pre-commit hook manager:
+
+```bash
+# Install via uv (recommended)
+uv tool install prek
+
+# Or via pip
+pip install pre-commit
+
+# Or via brew (macOS)
+brew install pre-commit
+```
+
+### Step 2: Bootstrap Prek Configuration
+Prek configuration is defined in `prek.toml` at the repository root:
+
+```toml
+# prek.toml
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"] },
+  { id = "end-of-file-fixer" },
+  { id = "mixed-line-ending", args = ["--fix=auto"] },
+  { id = "check-toml" },
+  { id = "check-yaml", args = ["--allow-multiple-documents"] },
+  { id = "check-json" },
+  { id = "check-merge-conflict" },
+  { id = "detect-private-key" },
+  { id = "check-added-large-files", args = ["--maxkb", "1024", "--enforce-all"] },
+  { id = "check-case-conflict" },
+  { id = "check-symlinks" },
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  { id = "rust-fmt", name = "Rust Format Check", entry = "cargo fmt --check --all", language = "system", pass_filenames = false, require_serial = true },
+  { id = "rust-clippy", name = "Rust Clippy", entry = "cargo clippy --workspace --all-targets -- -D warnings", language = "system", pass_filenames = false, require_serial = true },
+  { id = "rust-check", name = "Rust Compilation Check", entry = "cargo check --workspace", language = "system", pass_filenames = false, require_serial = true },
+  { id = "rust-test", name = "Rust Unit Tests", entry = "cargo test --workspace --lib", language = "system", pass_filenames = false, require_serial = true },
+]
+```
+
+### Step 3: Install Git Hooks
+Enable automatic prek execution on commits:
+
+```bash
+# From repository root
+prek install --install-hooks
+```
+
+**Expected output**: `pre-commit installed at .git/hooks/pre-commit`
+
+### Step 4: Verify Prek Setup
+Test that prek can run all checks:
+
+```bash
+# Run all checks on all files
+prek run --all-files
+```
+
+**Expected output**: All hooks pass (some may auto-fix files). If files are modified, stage and commit them.
+
+---
+
 ## Primary Quality Gates (Run Before Pushing)
 
 These are the core "ready to push" checks. Run them in order before committing your changes.
 
-### Step 1: Format Check
+### Step 1: Prek Invariant Checks
+Run prek to enforce code quality invariants:
+
+```bash
+# From repository root
+prek run --all-files
+```
+
+**If prek modifies files**, stage and commit those changes, then re-run prek.
+
+**Expected output**: All hooks pass. Prek enforces:
+- No trailing whitespace or mixed line endings
+- Valid TOML/YAML/JSON syntax
+- No large files or private keys committed
+- Consistent Rust code formatting, linting, compilation, and testing
+
+### Step 3: Format Check
 Check that all code is properly formatted:
 
 ```bash
@@ -95,7 +182,7 @@ Then run `cargo fmt --check` again to confirm.
 
 **Expected output**: No output means formatting is correct. Errors indicate files that need formatting.
 
-### Step 2: Lint Check
+### Step 4: Lint Check
 Run Clippy to catch common mistakes and style issues:
 
 ```bash
@@ -107,7 +194,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 
 **Expected output**: Compilation completes with no warnings or errors.
 
-### Step 3: Run All Tests
+### Step 5: Run All Tests
 Execute the full test suite:
 
 ```bash
@@ -121,7 +208,7 @@ running 2 tests
 test result: ok. 2 passed; 0 failed; 0 ignored
 ```
 
-### Step 4: Verify WASM Compilation
+### Step 6: Verify WASM Compilation
 Ensure the web frontend can compile for WebAssembly (prevents native-only dependencies from creeping in):
 
 ```bash
@@ -417,13 +504,21 @@ The desktop app is local-only and uses Tauri commands (no HTTP calls in MVP).
 From the repository root:
 
 ```bash
-cargo tauri build -p rust_tinypng_clone
+cargo tauri build --bundles app
+```
+
+Equivalent from `src-tauri/`:
+
+```bash
+cd src-tauri
+cargo tauri build --bundles app
 ```
 
 **Expected output**: 
 - Compilation completes
 - Tauri bundles the app
-- Output is in `apps/desktop/src-tauri/target/release/bundle/`
+- Output binary is `target/release/panda_pixel_rs_desktop`
+- Output bundles are in `target/release/bundle/`
 - Platform-specific bundles are created (`.app` on macOS, `.exe` on Windows, etc.)
 
 ### Run Desktop App in Dev Mode
@@ -431,7 +526,14 @@ For development and testing:
 
 ```bash
 # From repository root
-cargo tauri dev -p rust_tinypng_clone
+cargo tauri dev
+```
+
+Equivalent from `src-tauri/`:
+
+```bash
+cd src-tauri
+cargo tauri dev
 ```
 
 **Expected output**:
@@ -579,6 +681,14 @@ Before pushing your changes, verify all of these:
 - [ ] **WASM**: `cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown` passes
 - [ ] **Web Build**: `cd apps/web && trunk build --release` succeeds
 - [ ] **Manual Smoke Test**: `trunk serve` + `cargo run -p api` works in browser
+
+### Test Contribution Notes (Before PR)
+
+- Add new cross-crate or scenario tests under the top-level `tests/` directory.
+- Keep unit tests co-located in `#[cfg(test)]` modules for module-private logic.
+- For bug fixes, include a regression test that would fail before the fix.
+- Keep fixtures small and deterministic under `tests/fixtures/`.
+- If a test is expensive, mark it `#[ignore]` with a clear reason and run instructions.
 
 **Quick validation command** (if using `just`):
 

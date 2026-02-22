@@ -1,6 +1,6 @@
-use leptos::prelude::*;
 use crate::components::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -10,12 +10,12 @@ pub fn App() -> impl IntoView {
         <div class="container">
             <div class="header">
                 <h1>
-                    <img 
-                        src="./assets/icon_32x32.png" 
-                        alt="TinyPNG-rs Logo" 
+                    <img
+                        src="./assets/icon_32x32.png"
+                        alt="Panda Pixel Logo"
                         class="header-logo"
                     />
-                    "TinyPNG-rs"
+                    "Panda Pixel"
                 </h1>
                 <p>"Fast, 100% private image compression"</p>
             </div>

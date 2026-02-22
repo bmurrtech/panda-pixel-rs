@@ -1,10 +1,13 @@
 [workspace]
 members = [
     "apps/web",
-    "apps/desktop/src-tauri",
+    "src-tauri",
     "apps/api",
     "crates/domain",
     "crates/compression",
+]
+exclude = [
+    "src",
 ]
 resolver = "2"
 

@@ -1,5 +1,5 @@
 [package]
-name = "rust_tinypng_clone_frontend"
+name = "panda_pixel_rs_web"
 version.workspace = true
 edition.workspace = true
 
@@ -17,7 +17,7 @@ log = "0.4"
 domain = { path = "../../crates/domain" }
 
 [lib]
-name = "rust_tinypng_clone_frontend"
+name = "panda_pixel_rs_web"
 path = "lib.rs"
 crate-type = ["cdylib", "rlib"]
 

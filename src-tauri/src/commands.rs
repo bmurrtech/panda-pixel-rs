@@ -33,10 +33,10 @@ pub async fn select_files(
     use std::sync::mpsc;
 
     let (tx, rx) = mpsc::channel();
-    
+
     app.dialog()
         .file()
-        .add_filter("Images", &["png", "jpg", "jpeg", "bmp", "tiff", "tif", "webp", "heic", "heif", "avif"])
+        .add_filter("Images", &["png", "jpg", "jpeg", "bmp", "tiff", "tif", "webp", "ico"])
         .pick_files(move |paths| {
             let _ = tx.send(paths);
         });
@@ -73,7 +73,7 @@ pub async fn handle_dropped_files(
     file_paths: Vec<String>,
 ) -> Result<Vec<FileInfo>, String> {
     let mut files = Vec::new();
-    
+
     for path_str in file_paths {
         let path_buf = Path::new(&path_str);
         let metadata = fs::metadata(path_buf)
@@ -89,7 +89,7 @@ pub async fn handle_dropped_files(
             size: metadata.len(),
         });
     }
-    
+
     Ok(files)
 }
 
@@ -117,10 +117,12 @@ pub async fn compress_image(
     let quality_range = compression_level_to_range(&compression_level);
 
     // Build compression options
-    let mut opts = CompressionOptions::default();
-    opts.png_quality = quality_range;
-    opts.oxipng = oxipng;
-    opts.png_lossy = png_lossy;
+    let mut opts = CompressionOptions {
+        png_quality: quality_range,
+        oxipng,
+        png_lossy,
+        ..Default::default()
+    };
 
     // Set output format
     match output_format.as_str() {
@@ -142,7 +144,7 @@ pub async fn compress_image(
     let original_size = file_bytes.len() as u64;
     let compressed_size = compressed_bytes.len() as u64;
     let savings_percent = if original_size > 0 {
-        ((original_size - compressed_size) as f64 / original_size as f64) * 100.0
+        ((compressed_size as f64 - original_size as f64) / original_size as f64) * 100.0
     } else {
         0.0
     };
@@ -209,7 +211,7 @@ pub async fn select_output_folder(
     use std::sync::mpsc;
 
     let (tx, rx) = mpsc::channel();
-    
+
     app.dialog()
         .file()
         .pick_folder(move |path| {
@@ -223,7 +225,7 @@ pub async fn select_output_folder(
     let path_buf = folder_path.as_path()
         .ok_or_else(|| "Invalid path".to_string())?
         .to_path_buf();
-    
+
     Ok(path_buf.to_string_lossy().to_string())
 }
 
@@ -238,7 +240,7 @@ pub async fn save_files_to_folder(
     use serde_json;
 
     let folder_path = Path::new(&output_folder);
-    
+
     // Ensure folder exists
     fs::create_dir_all(folder_path)
         .map_err(|e| format!("Failed to create folder: {}", e))?;
@@ -249,25 +251,29 @@ pub async fn save_files_to_folder(
         let filename = file.get("filename")
             .and_then(|v| v.as_str())
             .ok_or_else(|| "Missing filename".to_string())?;
-        
+
         // Parse data array from JSON - it comes as a JSON array of numbers
         let data_array = file.get("data")
             .ok_or_else(|| "Missing data".to_string())?;
-        
+
         // Convert JSON array to Vec<u8>
         let data: Vec<u8> = serde_json::from_value(data_array.clone())
             .map_err(|e| format!("Failed to parse data for {}: {}", filename, e))?;
 
         let file_path = folder_path.join(filename);
-        let data_len = data.len(); // Store length before move
-        
+
         fs::write(&file_path, data)
             .map_err(|e| format!("Failed to save {}: {}", filename, e))?;
-        
+
         saved_paths.push(file_path.to_string_lossy().to_string());
-        
+
         #[cfg(debug_assertions)]
         {
+            let data_len = file
+                .get("data")
+                .and_then(|v| v.as_array())
+                .map(|arr| arr.len())
+                .unwrap_or_default();
             log::debug!("Saved: {} ({} bytes)", filename, data_len);
         }
     }
@@ -288,7 +294,7 @@ pub async fn save_file(
     use std::path::Path;
 
     let (tx, rx) = mpsc::channel();
-    
+
     // Extract just the filename from default_name (in case it contains a path)
     // default_name should already be just the filename (e.g., "image.webp"), but be safe
     let file_name_only = Path::new(&default_name)
@@ -296,7 +302,7 @@ pub async fn save_file(
         .and_then(|n| n.to_str())
         .unwrap_or(&default_name)
         .to_string();
-    
+
     // Log summary only in debug mode
     #[cfg(debug_assertions)]
     {
@@ -307,7 +313,9 @@ pub async fn save_file(
             .unwrap_or("unknown");
         log::debug!("Save dialog: {} -> {}", orig_name, file_name_only);
     }
-    
+    #[cfg(not(debug_assertions))]
+    let _ = &original_path;
+
     // Pass only the filename to set_file_name - this ensures the dialog shows
     // just the filename, not the full path. The dialog will open in the user's
     // default save location (or last used directory).
@@ -357,5 +365,44 @@ pub async fn open_devtools(app: tauri::AppHandle) -> Result<(), String> {
             webview.open_devtools();
         }
     }
+    #[cfg(not(debug_assertions))]
+    let _ = app;
     Ok(())
+}
+
+/// Open a folder path in the native file manager.
+#[tauri::command]
+pub async fn open_in_file_manager(path: String) -> Result<(), String> {
+    use std::process::Command;
+
+    #[cfg(target_os = "macos")]
+    let mut cmd = {
+        let mut c = Command::new("open");
+        c.arg(path);
+        c
+    };
+
+    #[cfg(target_os = "windows")]
+    let mut cmd = {
+        let mut c = Command::new("explorer");
+        c.arg(path);
+        c
+    };
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut cmd = {
+        let mut c = Command::new("xdg-open");
+        c.arg(path);
+        c
+    };
+
+    let status = cmd
+        .status()
+        .map_err(|e| format!("Failed to open folder in file manager: {e}"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("File manager exited with status: {status}"))
+    }
 }

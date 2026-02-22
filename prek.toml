@@ -1,0 +1,61 @@
+# Prek configuration for panda-pixel-rs
+# Rust-focused pre-commit quality gates and CI validation
+
+# Code hygiene checks (fast, autofixable)
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"] },
+  { id = "end-of-file-fixer" },
+  { id = "mixed-line-ending", args = ["--fix=auto"] },
+  { id = "check-toml" },
+  { id = "check-yaml", args = ["--allow-multiple-documents"] },
+  { id = "check-json" },
+  { id = "check-merge-conflict" },
+  { id = "detect-private-key" },
+  { id = "check-added-large-files", args = ["--maxkb", "1024", "--enforce-all"] },
+  { id = "check-case-conflict" },
+  { id = "check-symlinks" },
+]
+
+# Rust quality gates (core pre-commit checks)
+[[repos]]
+repo = "local"
+hooks = [
+  # Rust code formatting
+  {
+    id = "rust-fmt",
+    name = "Rust Format Check",
+    entry = "cargo fmt --check --all",
+    language = "system",
+    pass_filenames = false,
+    require_serial = true,
+  },
+  # Rust linting with warnings as errors
+  {
+    id = "rust-clippy",
+    name = "Rust Clippy",
+    entry = "cargo clippy --workspace --all-targets -- -D warnings",
+    language = "system",
+    pass_filenames = false,
+    require_serial = true,
+  },
+  # Rust compilation check
+  {
+    id = "rust-check",
+    name = "Rust Compilation Check",
+    entry = "cargo check --workspace",
+    language = "system",
+    pass_filenames = false,
+    require_serial = true,
+  },
+  # Rust unit tests (fast tests only)
+  {
+    id = "rust-test",
+    name = "Rust Unit Tests",
+    entry = "cargo test --workspace --lib",
+    language = "system",
+    pass_filenames = false,
+    require_serial = true,
+  },
+]

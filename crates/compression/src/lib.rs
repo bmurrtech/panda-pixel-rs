@@ -4,27 +4,55 @@ use image::{self, DynamicImage, ImageFormat};
 use imagequant::{Attributes, Image as LiqImage};
 use mozjpeg::{ColorSpace, Compress, ScanMode};
 use oxipng::{optimize_from_memory, Options as OxipngOptions};
-use ravif::{Encoder as AvifEncoder};
+use ravif::Encoder as AvifEncoder;
+use rgb::FromSlice;
 use std::io::Cursor;
 use webp::Encoder as WebpEncoder;
+
+fn decode_webp_dynamic(input: &[u8]) -> Result<DynamicImage> {
+    let decoded = webp::Decoder::new(input)
+        .decode()
+        .ok_or_else(|| anyhow!("Unsupported WebP format or corrupted file"))?;
+    let width = decoded.width();
+    let height = decoded.height();
+    let rgba = decoded.as_rgba();
+    let mut rgba_bytes = Vec::with_capacity((width * height * 4) as usize);
+    for px in rgba {
+        rgba_bytes.push(px.r);
+        rgba_bytes.push(px.g);
+        rgba_bytes.push(px.b);
+        rgba_bytes.push(px.a);
+    }
+    let rgba_img = image::RgbaImage::from_raw(width, height, rgba_bytes)
+        .ok_or_else(|| anyhow!("failed to build RGBA image from WebP decode"))?;
+    Ok(DynamicImage::ImageRgba8(rgba_img))
+}
+
+fn decode_dynamic_image(input: &[u8]) -> Result<DynamicImage> {
+    match image::load_from_memory(input) {
+        Ok(img) => Ok(img),
+        Err(primary_err) => decode_webp_dynamic(input)
+            .map_err(|_| anyhow!("Failed to decode image bytes: {primary_err}")),
+    }
+}
 
 /// PNG: quantize via libimagequant + optional oxipng (lossless)
 pub fn compress_png_bytes(input: &[u8], quality_range: &str, run_oxipng: bool) -> Result<Vec<u8>> {
     // Decode to RGBA8
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let rgba = img.to_rgba8();
     let (w_u32, h_u32) = (rgba.width(), rgba.height());
     let (w, h) = (w_u32 as usize, h_u32 as usize);
 
     // parse quality
     let (min_q, max_q) = domain::parse_quality_range(quality_range);
-    
+
     // For max compression (20-60 range), use aggressive settings
     let is_max_compression = max_q <= 60;
 
     // libimagequant
     let mut attr = Attributes::new();
-    
+
     // Adjust speed based on compression level
     if is_max_compression {
         attr.set_speed(1)?; // Slowest, highest quality quantization
@@ -32,14 +60,15 @@ pub fn compress_png_bytes(input: &[u8], quality_range: &str, run_oxipng: bool) -
     } else {
         attr.set_speed(3)?; // Balanced speed
     }
-    
+
     attr.set_quality(min_q, max_q)?;
-    
+
     // Convert Vec<u8> to the expected RGBA format
-    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba.chunks_exact(4)
+    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba
+        .chunks_exact(4)
         .map(|chunk| rgb::RGBA::new(chunk[0], chunk[1], chunk[2], chunk[3]))
         .collect();
-    
+
     let mut img_liq = LiqImage::new(&attr, rgba_pixels.as_slice(), w, h, 0.0)?;
     let mut res = attr.quantize(&mut img_liq)?;
     res.set_dithering_level(1.0)?;
@@ -78,7 +107,7 @@ pub fn compress_png_bytes(input: &[u8], quality_range: &str, run_oxipng: bool) -
 
 /// JPEG: re-encode with mozjpeg
 pub fn compress_jpeg_bytes(input: &[u8], quality: u8) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let rgb = img.to_rgb8();
     let (w, h) = (rgb.width() as usize, rgb.height() as usize);
 
@@ -87,7 +116,7 @@ pub fn compress_jpeg_bytes(input: &[u8], quality: u8) -> Result<Vec<u8>> {
     comp.set_quality(quality as f32);
     comp.set_progressive_mode();
     comp.set_scan_optimization_mode(ScanMode::AllComponentsTogether);
-    
+
     // For max compression, enable additional optimization
     if quality <= 60 {
         comp.set_optimize_coding(true);
@@ -105,9 +134,9 @@ pub fn compress_jpeg_bytes(input: &[u8], quality: u8) -> Result<Vec<u8>> {
     Ok(dest)
 }
 
-/// WebP via webp crate (lossy) 
+/// WebP via webp crate (lossy)
 pub fn to_webp_bytes(input: &[u8], quality: f32) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let rgba = img.to_rgba8();
     let enc = WebpEncoder::from_rgba(rgba.as_raw(), rgba.width(), rgba.height());
     let webp = enc.encode(quality); // 0..=100
@@ -118,26 +147,48 @@ pub fn to_webp_bytes(input: &[u8], quality: f32) -> Result<Vec<u8>> {
 pub fn heic_to_jpeg_bytes(input: &[u8], quality: u8) -> Result<Vec<u8>> {
     // Try to decode as HEIC using image crate fallback
     // If image crate doesn't support HEIC, we'll get an error and handle gracefully
-    let img = image::load_from_memory(input)
+    let img = decode_dynamic_image(input)
         .map_err(|_| anyhow!("Unsupported HEIC format or corrupted file"))?;
-        
+
     let rgb = img.to_rgb8();
-    compress_jpeg_bytes(&{
-        let mut cursor = Cursor::new(Vec::new());
-        DynamicImage::ImageRgb8(rgb).write_to(&mut cursor, ImageFormat::Jpeg)?;
-        cursor.into_inner()
-    }, quality)
+    compress_jpeg_bytes(
+        &{
+            let mut cursor = Cursor::new(Vec::new());
+            DynamicImage::ImageRgb8(rgb).write_to(&mut cursor, ImageFormat::Jpeg)?;
+            cursor.into_inner()
+        },
+        quality,
+    )
 }
 
 /// Convert to PNG
-pub fn to_png_bytes(input: &[u8], quality_range: &str, use_oxipng: bool) -> Result<Vec<u8>> {
-    // Use PNG compression with quality settings
-    compress_png_bytes(input, quality_range, use_oxipng)
+pub fn to_png_bytes(
+    input: &[u8],
+    quality_range: &str,
+    use_oxipng: bool,
+    png_lossy: bool,
+) -> Result<Vec<u8>> {
+    if png_lossy {
+        return compress_png_bytes(input, quality_range, use_oxipng);
+    }
+
+    let img = decode_dynamic_image(input)?;
+    let mut cursor = Cursor::new(Vec::new());
+    img.write_to(&mut cursor, ImageFormat::Png)?;
+    let png_buf = cursor.into_inner();
+
+    if use_oxipng {
+        let mut opts = OxipngOptions::from_preset(6);
+        opts.strip = oxipng::StripChunks::Safe;
+        return Ok(optimize_from_memory(&png_buf, &opts)?);
+    }
+
+    Ok(png_buf)
 }
 
 /// Convert to TIFF
 pub fn to_tiff_bytes(input: &[u8]) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let mut cursor = Cursor::new(Vec::new());
     img.write_to(&mut cursor, ImageFormat::Tiff)?;
     Ok(cursor.into_inner())
@@ -145,7 +196,7 @@ pub fn to_tiff_bytes(input: &[u8]) -> Result<Vec<u8>> {
 
 /// Convert to BMP
 pub fn to_bmp_bytes(input: &[u8]) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let mut cursor = Cursor::new(Vec::new());
     img.write_to(&mut cursor, ImageFormat::Bmp)?;
     Ok(cursor.into_inner())
@@ -153,14 +204,14 @@ pub fn to_bmp_bytes(input: &[u8]) -> Result<Vec<u8>> {
 
 /// Convert to ICO (fallback to PNG if ICO not supported)
 pub fn to_ico_bytes(input: &[u8]) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     // Resize to common icon size if needed
     let resized = if img.width() > 256 || img.height() > 256 {
         img.resize(256, 256, image::imageops::FilterType::Lanczos3)
     } else {
         img
     };
-    
+
     let mut cursor = Cursor::new(Vec::new());
     // Try ICO first, fallback to PNG if not supported
     match resized.write_to(&mut cursor, ImageFormat::Ico) {
@@ -176,36 +227,41 @@ pub fn to_ico_bytes(input: &[u8]) -> Result<Vec<u8>> {
 
 /// AVIF via ravif crate (lossy)
 pub fn to_avif_bytes(input: &[u8], quality: f32) -> Result<Vec<u8>> {
-    let img = image::load_from_memory(input)?;
+    let img = decode_dynamic_image(input)?;
     let rgba = img.to_rgba8();
     let (w, h) = (img.width(), img.height());
     let speed = 6u8; // 0 best / slowest, 10 fastest
     let enc = AvifEncoder::new().with_quality(quality).with_speed(speed);
-    
+
     // Convert to proper RGBA format
-    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba.chunks_exact(4)
+    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba
+        .chunks_exact(4)
         .map(|chunk| rgb::RGBA::new(chunk[0], chunk[1], chunk[2], chunk[3]))
         .collect();
-    
+
     let avif_img = ravif::Img::new(rgba_pixels.as_slice(), w as usize, h as usize);
     let avif = enc.encode_rgba(avif_img)?;
     Ok(avif.avif_file)
 }
 
 /// In-process compress dispatcher
-pub fn compress_image_inproc(input_bytes: &[u8], ext_lower: &str, opts: &CompressionOptions) -> Result<(Vec<u8>, String)> {
+pub fn compress_image_inproc(
+    input_bytes: &[u8],
+    ext_lower: &str,
+    opts: &CompressionOptions,
+) -> Result<(Vec<u8>, String)> {
     // Handle HEIC files first (convert to JPEG like TinyPNG)
     if ext_lower == "heic" || ext_lower == "heif" {
         let bytes = heic_to_jpeg_bytes(input_bytes, 85)?; // High quality for HEIC conversion
         return Ok((bytes, "image/jpeg".to_string()));
     }
-    
+
     // Parse quality range to determine compression level
     let (min_q, max_q) = domain::parse_quality_range(&opts.png_quality);
     let webp_quality = ((min_q + max_q) / 2) as f32;
     let jpeg_quality = (min_q + max_q) / 2;
     let avif_quality = ((min_q + max_q) / 2) as f32;
-    
+
     // If conversion requested, honor it next
     if opts.to_webp {
         let bytes = to_webp_bytes(input_bytes, webp_quality)?;
@@ -220,7 +276,7 @@ pub fn compress_image_inproc(input_bytes: &[u8], ext_lower: &str, opts: &Compres
         return Ok((bytes, "image/jpeg".to_string()));
     }
     if opts.to_png {
-        let bytes = to_png_bytes(input_bytes, &opts.png_quality, opts.oxipng)?;
+        let bytes = to_png_bytes(input_bytes, &opts.png_quality, opts.oxipng, opts.png_lossy)?;
         return Ok((bytes, "image/png".to_string()));
     }
     if opts.to_tiff {
@@ -243,7 +299,7 @@ pub fn compress_image_inproc(input_bytes: &[u8], ext_lower: &str, opts: &Compres
                 Ok((bytes, "image/png".into()))
             } else {
                 // lossless re-encode
-                let img = image::load_from_memory(input_bytes)?;
+                let img = decode_dynamic_image(input_bytes)?;
                 let mut cursor = Cursor::new(Vec::new());
                 img.write_to(&mut cursor, ImageFormat::Png)?;
                 let buf = cursor.into_inner();
@@ -270,23 +326,28 @@ mod tests {
     use std::io::Cursor;
 
     fn create_test_png() -> Vec<u8> {
-        let img = image::ImageBuffer::from_fn(100, 100, |_, _| {
-            image::Rgb([255, 0, 0])
-        });
+        let img = image::ImageBuffer::from_fn(100, 100, |_, _| image::Rgb([255, 0, 0]));
         let dynamic_img = DynamicImage::ImageRgb8(img);
         let mut bytes = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png).unwrap();
+        dynamic_img
+            .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png)
+            .unwrap();
         bytes
     }
 
     fn create_test_jpeg() -> Vec<u8> {
-        let img = image::ImageBuffer::from_fn(100, 100, |_, _| {
-            image::Rgb([0, 0, 255])
-        });
+        let img = image::ImageBuffer::from_fn(100, 100, |_, _| image::Rgb([0, 0, 255]));
         let dynamic_img = DynamicImage::ImageRgb8(img);
         let mut bytes = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg).unwrap();
+        dynamic_img
+            .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg)
+            .unwrap();
         bytes
+    }
+
+    fn create_test_webp() -> Vec<u8> {
+        let png_data = create_test_png();
+        to_webp_bytes(&png_data, 80.0).expect("failed to create test webp")
     }
 
     #[test]
@@ -298,10 +359,10 @@ mod tests {
             oxipng: true,
             ..Default::default()
         };
-        
+
         let result = compress_image_inproc(&png_data, "png", &opts);
         assert!(result.is_ok());
-        
+
         let (compressed, mime_type) = result.unwrap();
         assert_eq!(mime_type, "image/png");
         assert!(!compressed.is_empty());
@@ -311,12 +372,54 @@ mod tests {
     fn test_jpeg_compression() {
         let jpeg_data = create_test_jpeg();
         let opts = CompressionOptions::default();
-        
+
         let result = compress_image_inproc(&jpeg_data, "jpeg", &opts);
         assert!(result.is_ok());
-        
+
         let (compressed, mime_type) = result.unwrap();
         assert_eq!(mime_type, "image/jpeg");
         assert!(!compressed.is_empty());
+    }
+
+    #[test]
+    fn test_webp_input_to_png_conversion_lossless() {
+        let webp_data = create_test_webp();
+        let opts = CompressionOptions {
+            to_png: true,
+            png_lossy: false,
+            oxipng: false,
+            ..Default::default()
+        };
+
+        let result = compress_image_inproc(&webp_data, "webp", &opts);
+        assert!(result.is_ok());
+        let (converted, mime_type) = result.expect("webp to png conversion should succeed");
+        assert_eq!(mime_type, "image/png");
+        assert!(!converted.is_empty());
+    }
+
+    #[test]
+    fn test_webp_input_to_jpeg_conversion() {
+        let webp_data = create_test_webp();
+        let opts = CompressionOptions {
+            to_jpeg: true,
+            ..Default::default()
+        };
+
+        let result = compress_image_inproc(&webp_data, "webp", &opts);
+        assert!(result.is_ok());
+        let (converted, mime_type) = result.expect("webp to jpeg conversion should succeed");
+        assert_eq!(mime_type, "image/jpeg");
+        assert!(!converted.is_empty());
+    }
+
+    #[test]
+    fn test_invalid_webp_input_returns_error() {
+        let opts = CompressionOptions {
+            to_png: true,
+            ..Default::default()
+        };
+        let result = compress_image_inproc(b"not-a-valid-webp", "webp", &opts);
+        assert!(result.is_err());
     }
 }

@@ -71,7 +71,7 @@ jobs:
 
       - name: Build frontend (Unix)
         if: matrix.platform != 'windows-latest'
-        run: ./build-frontend.sh
+        run: ./scripts/build-frontend.sh
 
       - name: Build frontend (Windows)
         if: matrix.platform == 'windows-latest'
@@ -129,17 +129,17 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          
+
           # Search both possible target locations
           ROOTS=("target/release/bundle" "src-tauri/target/release/bundle")
           ARTIFACTS=""
-          
+
           # Use direct find commands per platform (no string interpolation to avoid quoting issues)
           for root in "${ROOTS[@]}"; do
             if [[ ! -d "$root" ]]; then
               continue
             fi
-            
+
             if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
               # macOS: search for .dmg and .app.zip files
               found=$(find "$root" -type f \( -name "*.dmg" -o -name "*.app.zip" \) -maxdepth 5 2>/dev/null || true)
@@ -150,15 +150,15 @@ jobs:
               # Linux: search for .deb, .rpm, and .AppImage files
               found=$(find "$root" -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) -maxdepth 5 2>/dev/null || true)
             fi
-            
+
             if [[ -n "$found" ]]; then
               ARTIFACTS="${ARTIFACTS}${found}"$'\n'
             fi
           done
-          
+
           # Remove empty lines and trim
           ARTIFACTS=$(echo "$ARTIFACTS" | grep -v '^$' || true)
-          
+
           # Fail-fast: artifacts must be non-empty
           if [[ -z "$ARTIFACTS" ]]; then
             echo "ERROR: No artifacts found for platform ${{ matrix.platform }}"
@@ -172,7 +172,7 @@ jobs:
             done
             exit 1
           fi
-          
+
           # Output multiline format (robust for paths with spaces, works with softprops)
           # Use heredoc syntax for $GITHUB_OUTPUT to handle multiline values
           {
@@ -180,7 +180,7 @@ jobs:
             echo "$ARTIFACTS"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-          
+
           echo "Found artifacts:"
           echo "$ARTIFACTS"
 

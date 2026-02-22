@@ -9,7 +9,7 @@ proptest! {
         // Just verify it doesn't panic. The result can be Ok or Err.
         let _ = compress_image_inproc(&data, "png", &opts);
     }
-    
+
     #[test]
     fn test_compress_inproc_jpeg_no_crash(data in prop::collection::vec(any::<u8>(), 0..10_000)) {
         let opts = CompressionOptions::default();

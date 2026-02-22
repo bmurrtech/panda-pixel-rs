@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use crate::state::AppState;
+use std::path::Path;
 
 fn format_bytes(bytes: u64) -> String {
     if bytes == 0 {
@@ -10,6 +11,27 @@ fn format_bytes(bytes: u64) -> String {
     let i = (bytes as f64).log(k as f64).floor() as usize;
     let i = i.min(sizes.len() - 1);
     format!("{:.1} {}", bytes as f64 / (k as f64).powi(i as i32), sizes[i])
+}
+
+fn ext_from_mime(mime: &str) -> Option<&'static str> {
+    match mime {
+        "image/webp" => Some("webp"),
+        "image/avif" => Some("avif"),
+        "image/jpeg" => Some("jpg"),
+        "image/png" => Some("png"),
+        "image/tiff" => Some("tiff"),
+        "image/bmp" => Some("bmp"),
+        "image/x-icon" => Some("ico"),
+        _ => None,
+    }
+}
+
+fn display_output_filename(original_path: &str, mime_type: &str) -> String {
+    let path = Path::new(original_path);
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("compressed");
+    let fallback_ext = path.extension().and_then(|e| e.to_str()).unwrap_or("bin");
+    let ext = ext_from_mime(mime_type).unwrap_or(fallback_ext);
+    format!("{stem}.{ext}")
 }
 
 #[component]
@@ -28,12 +50,7 @@ pub fn ResultsList(state: AppState) -> impl IntoView {
                                     <div>
                                         <strong>
                                             {move || {
-                                                // Extract just the filename for display (not full path)
-                                                std::path::Path::new(&result.original_path)
-                                                    .file_name()
-                                                    .and_then(|n| n.to_str())
-                                                    .unwrap_or(&result.original_path)
-                                                    .to_string()
+                                                display_output_filename(&result.original_path, &result.mime_type)
                                             }}
                                         </strong>
                                         <p style="color: #d1d5db; font-size: 0.875rem;">
@@ -41,8 +58,8 @@ pub fn ResultsList(state: AppState) -> impl IntoView {
                                             " → "
                                             {format_bytes(result.compressed_size)}
                                             " ("
-                                            {format!("{:.1}", result.savings_percent)}
-                                            "% saved)"
+                                            {format!("{:+.1}%", result.savings_percent)}
+                                            ")"
                                         </p>
                                     </div>
                                 </div>
