@@ -9,10 +9,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::select_files,
             commands::handle_dropped_files,
+            commands::check_file_collisions,
             commands::compress_image,
             commands::compress_batch,
             commands::select_output_folder,
             commands::save_files_to_folder,
+            commands::save_files_as_zip,
             commands::save_file,
             commands::resize_window,
             commands::open_devtools,

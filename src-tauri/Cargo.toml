@@ -1,7 +1,7 @@
 [package]
 name = "panda_pixel_rs_desktop"
-version = "0.1.0-alpha"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
@@ -20,6 +20,7 @@ mozjpeg = "0.10"
 webp = "0.3"
 ravif = "0.11"
 rgb = "0.8"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [lib]
 name = "panda_pixel_rs_desktop"

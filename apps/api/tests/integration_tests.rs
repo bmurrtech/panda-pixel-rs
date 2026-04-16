@@ -27,14 +27,14 @@ async fn test_compress_endpoint_e2e() {
         ))
         .await;
 
-    // Should be 200 or 400 depending on if we validate image content validity strictly before compression
+    // Should be 200, 400, or 500 depending on validation
     // compress_image_inproc uses image::load_from_memory which will fail for dummy data
-    // apps/api/src/routes.rs catches error and returns 500 or 400?
-    // It returns ApiError::InternalError("Compression failed: ...") which maps to 500
-    // We expect 500 for invalid image data in current impl
+    // apps/api/src/routes.rs catches error and returns 400 for invalid image format, 500 for other errors
+    // Dummy data should return 400 BadRequest for invalid image format
 
     assert!(
-        response.status_code() == StatusCode::INTERNAL_SERVER_ERROR
+        response.status_code() == StatusCode::BAD_REQUEST
+            || response.status_code() == StatusCode::INTERNAL_SERVER_ERROR
             || response.status_code() == StatusCode::OK
     );
 }

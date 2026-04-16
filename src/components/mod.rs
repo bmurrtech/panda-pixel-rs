@@ -7,6 +7,8 @@ pub mod progress_bar;
 pub mod error_display;
 pub mod status_display;
 pub mod results_list;
+pub mod collision_modal;
+pub mod files_list;
 
 pub use file_selector::FileSelector;
 pub use quality_slider::QualitySlider;
@@ -17,3 +19,5 @@ pub use progress_bar::ProgressBar;
 pub use error_display::ErrorDisplay;
 pub use status_display::StatusDisplay;
 pub use results_list::ResultsList;
+pub use collision_modal::CollisionModal;
+pub use files_list::FilesList;

@@ -33,6 +33,10 @@ body {
     max-width: 720px;          /* slightly wider for better layout */
     width: 100%;
     margin: 0;                 /* no margin since body has padding */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
 }
 
 .header {
@@ -383,4 +387,207 @@ body {
 
 .download-link:hover {
     background: #059669;
+}
+
+/* Files List Section */
+.files-list-section {
+    background: #1a1a1a;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.files-list-header {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    color: #d1d5db;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 1rem;
+}
+
+.file-size {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #1f1f1f;
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    color: #ffffff;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h3 {
+    margin-bottom: 1rem;
+}
+
+.collision-list {
+    max-height: 150px;
+    overflow-y: auto;
+    background: #2a2a2a;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+    list-style: none;
+}
+
+.collision-list li {
+    padding: 0.25rem 0;
+    color: #fca5a5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-secondary {
+    background: #4b5563;
+    color: white;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+/* Sticky Footer Layout */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.action-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--container-bg);
+    padding-top: 1rem;
+    border-top: 1px solid #3a3a3a;
+}
+
+/* Save Buttons Layout */
+.save-buttons-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.save-button, .zip-button {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.save-button {
+    background: #10b981;
+    color: white;
+}
+
+.zip-button {
+    background: #8b5cf6;
+    color: white;
+}
+
+.save-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+}
+
+.save-actions .convert-button {
+    width: auto;
+    flex: 1 1 0;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.85rem 1.2rem;
+}
+
+.save-primary-button {
+    background: #2a2a2a;
+    color: #e5e7eb;
+    border: 2px solid #6b7280;
+    box-shadow: none;
+}
+
+.save-primary-button:hover:not(:disabled) {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
+}
+
+.save-zip-button {
+    background: #2a2a2a;
+    color: #e5e7eb;
+    border: 2px solid #6b7280;
+    box-shadow: none;
+}
+
+.save-zip-button:hover:not(:disabled) {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
 }

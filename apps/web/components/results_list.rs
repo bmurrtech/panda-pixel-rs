@@ -32,7 +32,10 @@ fn ext_from_mime(mime: &str) -> Option<&'static str> {
 
 fn display_output_filename(original_path: &str, mime_type: &str) -> String {
     let path = Path::new(original_path);
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("compressed");
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("compressed");
     let fallback_ext = path.extension().and_then(|e| e.to_str()).unwrap_or("bin");
     let ext = ext_from_mime(mime_type).unwrap_or(fallback_ext);
     format!("{stem}.{ext}")

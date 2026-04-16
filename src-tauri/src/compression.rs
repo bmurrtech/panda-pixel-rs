@@ -3,7 +3,7 @@ use image::{self, DynamicImage, ImageFormat};
 use imagequant::{Attributes, Image as LiqImage};
 use mozjpeg::{ColorSpace, Compress, ScanMode};
 use oxipng::{optimize_from_memory, Options as OxipngOptions};
-use ravif::{Encoder as AvifEncoder};
+use ravif::Encoder as AvifEncoder;
 use rgb::FromSlice;
 use std::io::Cursor;
 use webp::Encoder as WebpEncoder;
@@ -40,8 +40,14 @@ fn decode_dynamic_image(input: &[u8]) -> Result<DynamicImage> {
 /// Parse "50-80" into (min,max) u8
 pub fn parse_quality_range(s: &str) -> (u8, u8) {
     let parts: Vec<_> = s.split('-').collect();
-    let min = parts.first().and_then(|p| p.parse::<u8>().ok()).unwrap_or(50);
-    let max = parts.get(1).and_then(|p| p.parse::<u8>().ok()).unwrap_or(80);
+    let min = parts
+        .first()
+        .and_then(|p| p.parse::<u8>().ok())
+        .unwrap_or(50);
+    let max = parts
+        .get(1)
+        .and_then(|p| p.parse::<u8>().ok())
+        .unwrap_or(80);
     (min, max)
 }
 
@@ -83,7 +89,8 @@ pub fn compress_png_bytes(input: &[u8], quality_range: &str, run_oxipng: bool) -
     attr.set_quality(min_q, max_q)?;
 
     // Convert Vec<u8> to the expected RGBA format
-    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba.chunks_exact(4)
+    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba
+        .chunks_exact(4)
         .map(|chunk| rgb::RGBA::new(chunk[0], chunk[1], chunk[2], chunk[3]))
         .collect();
 
@@ -169,11 +176,14 @@ pub fn heic_to_jpeg_bytes(input: &[u8], quality: u8) -> Result<Vec<u8>> {
         .map_err(|_| anyhow!("Unsupported HEIC format or corrupted file"))?;
 
     let rgb = img.to_rgb8();
-    compress_jpeg_bytes(&{
-        let mut cursor = Cursor::new(Vec::new());
-        DynamicImage::ImageRgb8(rgb).write_to(&mut cursor, ImageFormat::Jpeg)?;
-        cursor.into_inner()
-    }, quality)
+    compress_jpeg_bytes(
+        &{
+            let mut cursor = Cursor::new(Vec::new());
+            DynamicImage::ImageRgb8(rgb).write_to(&mut cursor, ImageFormat::Jpeg)?;
+            cursor.into_inner()
+        },
+        quality,
+    )
 }
 
 /// Convert to PNG
@@ -249,7 +259,8 @@ pub fn to_avif_bytes(input: &[u8], quality: f32) -> Result<Vec<u8>> {
     let enc = AvifEncoder::new().with_quality(quality).with_speed(speed);
 
     // Convert to proper RGBA format
-    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba.chunks_exact(4)
+    let rgba_pixels: Vec<rgb::RGBA<u8>> = rgba
+        .chunks_exact(4)
         .map(|chunk| rgb::RGBA::new(chunk[0], chunk[1], chunk[2], chunk[3]))
         .collect();
 
@@ -259,7 +270,11 @@ pub fn to_avif_bytes(input: &[u8], quality: f32) -> Result<Vec<u8>> {
 }
 
 /// In-process compress dispatcher
-pub fn compress_image_inproc(input_bytes: &[u8], ext_lower: &str, opts: &CompressionOptions) -> Result<(Vec<u8>, String)> {
+pub fn compress_image_inproc(
+    input_bytes: &[u8],
+    ext_lower: &str,
+    opts: &CompressionOptions,
+) -> Result<(Vec<u8>, String)> {
     // Handle HEIC files first (convert to JPEG like TinyPNG)
     if ext_lower == "heic" || ext_lower == "heif" {
         let bytes = heic_to_jpeg_bytes(input_bytes, 85)?; // High quality for HEIC conversion
@@ -336,22 +351,22 @@ mod tests {
     use std::io::Cursor;
 
     fn create_test_png() -> Vec<u8> {
-        let img = image::ImageBuffer::from_fn(100, 100, |_, _| {
-            image::Rgb([255, 0, 0])
-        });
+        let img = image::ImageBuffer::from_fn(100, 100, |_, _| image::Rgb([255, 0, 0]));
         let dynamic_img = DynamicImage::ImageRgb8(img);
         let mut bytes = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png).unwrap();
+        dynamic_img
+            .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png)
+            .unwrap();
         bytes
     }
 
     fn create_test_jpeg() -> Vec<u8> {
-        let img = image::ImageBuffer::from_fn(100, 100, |_, _| {
-            image::Rgb([0, 0, 255])
-        });
+        let img = image::ImageBuffer::from_fn(100, 100, |_, _| image::Rgb([0, 0, 255]));
         let dynamic_img = DynamicImage::ImageRgb8(img);
         let mut bytes = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg).unwrap();
+        dynamic_img
+            .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Jpeg)
+            .unwrap();
         bytes
     }
 

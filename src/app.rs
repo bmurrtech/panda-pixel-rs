@@ -1,6 +1,6 @@
-use leptos::prelude::*;
 use crate::components::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -20,15 +20,22 @@ pub fn App() -> impl IntoView {
                 <p>"Fast, 100% private image compression"</p>
             </div>
 
-            <FileSelector state=app_state.clone() />
-            <QualitySlider state=app_state.clone() />
-            <FormatSelector state=app_state.clone() />
-            <AdvancedOptions state=app_state.clone() />
-            <CompressButton state=app_state.clone() />
-            <ProgressBar state=app_state.clone() />
-            <StatusDisplay state=app_state.clone() />
-            <ErrorDisplay state=app_state.clone() />
-            <ResultsList state=app_state.clone() />
+            <div class="main-content">
+                <FileSelector state=app_state.clone() />
+                <FilesList state=app_state.clone() />
+                <QualitySlider state=app_state.clone() />
+                <FormatSelector state=app_state.clone() />
+                <AdvancedOptions state=app_state.clone() />
+                <ProgressBar state=app_state.clone() />
+                <StatusDisplay state=app_state.clone() />
+                <ErrorDisplay state=app_state.clone() />
+                <ResultsList state=app_state.clone() />
+            </div>
+
+            <div class="action-footer">
+                <CompressButton state=app_state.clone() />
+            </div>
+
         </div>
     }
 }

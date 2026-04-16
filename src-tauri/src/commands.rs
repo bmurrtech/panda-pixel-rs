@@ -26,32 +26,35 @@ pub struct FileInfo {
 
 /// Select files using Tauri file dialog
 #[tauri::command]
-pub async fn select_files(
-    app: tauri::AppHandle,
-) -> Result<Vec<FileInfo>, String> {
-    use tauri_plugin_dialog::DialogExt;
+pub async fn select_files(app: tauri::AppHandle) -> Result<Vec<FileInfo>, String> {
     use std::sync::mpsc;
+    use tauri_plugin_dialog::DialogExt;
 
     let (tx, rx) = mpsc::channel();
 
     app.dialog()
         .file()
-        .add_filter("Images", &["png", "jpg", "jpeg", "bmp", "tiff", "tif", "webp", "ico"])
+        .add_filter(
+            "Images",
+            &["png", "jpg", "jpeg", "bmp", "tiff", "tif", "webp", "ico"],
+        )
         .pick_files(move |paths| {
             let _ = tx.send(paths);
         });
 
-    let file_paths = rx.recv()
+    let file_paths = rx
+        .recv()
         .map_err(|_| "Dialog cancelled".to_string())?
         .ok_or_else(|| "No files selected".to_string())?;
 
     let mut files = Vec::new();
     for path in file_paths {
-        let path_buf = path.as_path()
+        let path_buf = path
+            .as_path()
             .ok_or_else(|| "Invalid path".to_string())?
             .to_path_buf();
-        let metadata = fs::metadata(&path_buf)
-            .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+        let metadata =
+            fs::metadata(&path_buf).map_err(|e| format!("Failed to read file metadata: {}", e))?;
         let name = path_buf
             .file_name()
             .and_then(|n| n.to_str())
@@ -69,15 +72,13 @@ pub async fn select_files(
 
 /// Handle files dropped onto the window (from drag & drop)
 #[tauri::command]
-pub async fn handle_dropped_files(
-    file_paths: Vec<String>,
-) -> Result<Vec<FileInfo>, String> {
+pub async fn handle_dropped_files(file_paths: Vec<String>) -> Result<Vec<FileInfo>, String> {
     let mut files = Vec::new();
 
     for path_str in file_paths {
         let path_buf = Path::new(&path_str);
-        let metadata = fs::metadata(path_buf)
-            .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+        let metadata =
+            fs::metadata(path_buf).map_err(|e| format!("Failed to read file metadata: {}", e))?;
         let name = path_buf
             .file_name()
             .and_then(|n| n.to_str())
@@ -103,8 +104,7 @@ pub async fn compress_image(
     png_lossy: bool,
 ) -> Result<CompressionResult, String> {
     // Read file
-    let file_bytes = fs::read(&file_path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
+    let file_bytes = fs::read(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
 
     // Get file extension
     let ext = Path::new(&file_path)
@@ -133,7 +133,7 @@ pub async fn compress_image(
         "tiff" => opts.to_tiff = true,
         "bmp" => opts.to_bmp = true,
         "ico" => opts.to_ico = true,
-        "original" => {}, // Keep original format
+        "original" => {}          // Keep original format
         _ => opts.to_webp = true, // Default to WebP
     }
 
@@ -204,25 +204,23 @@ pub async fn compress_batch(
 
 /// Select output folder for saving files
 #[tauri::command]
-pub async fn select_output_folder(
-    app: tauri::AppHandle,
-) -> Result<String, String> {
-    use tauri_plugin_dialog::DialogExt;
+pub async fn select_output_folder(app: tauri::AppHandle) -> Result<String, String> {
     use std::sync::mpsc;
+    use tauri_plugin_dialog::DialogExt;
 
     let (tx, rx) = mpsc::channel();
 
-    app.dialog()
-        .file()
-        .pick_folder(move |path| {
-            let _ = tx.send(path);
-        });
+    app.dialog().file().pick_folder(move |path| {
+        let _ = tx.send(path);
+    });
 
-    let folder_path = rx.recv()
+    let folder_path = rx
+        .recv()
         .map_err(|_| "Dialog cancelled".to_string())?
         .ok_or_else(|| "No folder selected".to_string())?;
 
-    let path_buf = folder_path.as_path()
+    let path_buf = folder_path
+        .as_path()
         .ok_or_else(|| "Invalid path".to_string())?
         .to_path_buf();
 
@@ -235,26 +233,25 @@ pub async fn save_files_to_folder(
     output_folder: String,
     files: Vec<serde_json::Value>,
 ) -> Result<Vec<String>, String> {
-    use std::path::Path;
-    use std::fs;
     use serde_json;
+    use std::fs;
+    use std::path::Path;
 
     let folder_path = Path::new(&output_folder);
 
     // Ensure folder exists
-    fs::create_dir_all(folder_path)
-        .map_err(|e| format!("Failed to create folder: {}", e))?;
+    fs::create_dir_all(folder_path).map_err(|e| format!("Failed to create folder: {}", e))?;
 
     let mut saved_paths = Vec::new();
 
     for file in files {
-        let filename = file.get("filename")
+        let filename = file
+            .get("filename")
             .and_then(|v| v.as_str())
             .ok_or_else(|| "Missing filename".to_string())?;
 
         // Parse data array from JSON - it comes as a JSON array of numbers
-        let data_array = file.get("data")
-            .ok_or_else(|| "Missing data".to_string())?;
+        let data_array = file.get("data").ok_or_else(|| "Missing data".to_string())?;
 
         // Convert JSON array to Vec<u8>
         let data: Vec<u8> = serde_json::from_value(data_array.clone())
@@ -262,8 +259,7 @@ pub async fn save_files_to_folder(
 
         let file_path = folder_path.join(filename);
 
-        fs::write(&file_path, data)
-            .map_err(|e| format!("Failed to save {}: {}", filename, e))?;
+        fs::write(&file_path, data).map_err(|e| format!("Failed to save {}: {}", filename, e))?;
 
         saved_paths.push(file_path.to_string_lossy().to_string());
 
@@ -281,6 +277,76 @@ pub async fn save_files_to_folder(
     Ok(saved_paths)
 }
 
+#[tauri::command]
+pub async fn check_file_collisions(
+    output_folder: String,
+    filenames: Vec<String>,
+) -> Result<Vec<String>, String> {
+    use std::path::Path;
+
+    let folder_path = Path::new(&output_folder);
+    let mut collisions = Vec::new();
+
+    for filename in filenames {
+        let file_path = folder_path.join(&filename);
+        if file_path.exists() {
+            collisions.push(filename);
+        }
+    }
+
+    Ok(collisions)
+}
+
+#[tauri::command]
+pub async fn save_files_as_zip(
+    output_folder: String,
+    zip_filename: String,
+    files: Vec<serde_json::Value>,
+) -> Result<String, String> {
+    use std::fs::File;
+    use std::io::Write;
+    use std::path::Path;
+    use zip::write::SimpleFileOptions;
+    use zip::CompressionMethod;
+    use zip::ZipWriter;
+
+    let folder_path = Path::new(&output_folder);
+    fs::create_dir_all(folder_path).map_err(|e| format!("Failed to create folder: {}", e))?;
+
+    let zip_path = folder_path.join(&zip_filename);
+    let zip_file = File::create(&zip_path).map_err(|e| format!("Failed to create ZIP file: {}", e))?;
+
+    let mut zip = ZipWriter::new(zip_file);
+    let file_options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Deflated)
+        .compression_level(Some(6));
+
+    for file in files {
+        let filename = file
+            .get("filename")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| "Missing filename".to_string())?;
+
+        let data_array = file
+            .get("data")
+            .ok_or_else(|| format!("Missing data for {}", filename))?;
+
+        let data: Vec<u8> = serde_json::from_value(data_array.clone())
+            .map_err(|e| format!("Failed to parse data for {}: {}", filename, e))?;
+
+        zip.start_file(filename, file_options)
+            .map_err(|e| format!("Failed to add {} to ZIP: {}", filename, e))?;
+
+        zip.write_all(&data)
+            .map_err(|e| format!("Failed to write {} to ZIP: {}", filename, e))?;
+    }
+
+    zip.finish()
+        .map_err(|e| format!("Failed to finalize ZIP archive: {}", e))?;
+
+    Ok(zip_path.to_string_lossy().to_string())
+}
+
 /// Save compressed file to disk (saves in same directory as source by default)
 #[tauri::command]
 pub async fn save_file(
@@ -289,9 +355,9 @@ pub async fn save_file(
     default_name: String,
     data: Vec<u8>,
 ) -> Result<String, String> {
-    use tauri_plugin_dialog::DialogExt;
-    use std::sync::mpsc;
     use std::path::Path;
+    use std::sync::mpsc;
+    use tauri_plugin_dialog::DialogExt;
 
     let (tx, rx) = mpsc::channel();
 
@@ -326,26 +392,23 @@ pub async fn save_file(
             let _ = tx.send(path);
         });
 
-    let save_path = rx.recv()
+    let save_path = rx
+        .recv()
         .map_err(|_| "Dialog cancelled".to_string())?
         .ok_or_else(|| "Save cancelled".to_string())?;
 
-    let path_buf = save_path.as_path()
+    let path_buf = save_path
+        .as_path()
         .ok_or_else(|| "Invalid path".to_string())?
         .to_path_buf();
-    fs::write(&path_buf, data)
-        .map_err(|e| format!("Failed to save file: {}", e))?;
+    fs::write(&path_buf, data).map_err(|e| format!("Failed to save file: {}", e))?;
 
     Ok(path_buf.to_string_lossy().to_string())
 }
 
 /// Resize window to fit content
 #[tauri::command]
-pub async fn resize_window(
-    window: Window,
-    width: f64,
-    height: f64,
-) -> Result<(), String> {
+pub async fn resize_window(window: Window, width: f64, height: f64) -> Result<(), String> {
     // Add padding for window chrome (title bar, borders, etc.)
     let padding = 40.0;
     window

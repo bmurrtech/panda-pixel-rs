@@ -19,6 +19,7 @@ pub struct CompressionResult {
     pub data: Vec<u8>,
 }
 
+#[derive(Clone, Copy)]
 pub struct AppState {
     pub files: RwSignal<Vec<FileInfo>>,
     pub compression_level: RwSignal<String>,
@@ -32,6 +33,10 @@ pub struct AppState {
     pub is_compressing: RwSignal<bool>,
     pub has_compressed: RwSignal<bool>,
     pub advanced_open: RwSignal<bool>,
+    pub show_collision_modal: RwSignal<bool>,
+    pub collision_files: RwSignal<Vec<String>>,
+    pub pending_save_folder: RwSignal<Option<String>>,
+    pub show_files_list: RwSignal<bool>,
 }
 
 impl AppState {
@@ -49,25 +54,11 @@ impl AppState {
             is_compressing: RwSignal::new(false),
             has_compressed: RwSignal::new(false),
             advanced_open: RwSignal::new(false),
+            show_collision_modal: RwSignal::new(false),
+            collision_files: RwSignal::new(Vec::new()),
+            pending_save_folder: RwSignal::new(None),
+            show_files_list: RwSignal::new(true),
         }
     }
 }
 
-impl Clone for AppState {
-    fn clone(&self) -> Self {
-        Self {
-            files: self.files,
-            compression_level: self.compression_level,
-            output_format: self.output_format,
-            oxipng: self.oxipng,
-            png_lossy: self.png_lossy,
-            progress: self.progress,
-            results: self.results,
-            error: self.error,
-            status: self.status,
-            is_compressing: self.is_compressing,
-            has_compressed: self.has_compressed,
-            advanced_open: self.advanced_open,
-        }
-    }
-}

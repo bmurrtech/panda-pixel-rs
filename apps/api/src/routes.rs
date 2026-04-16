@@ -182,8 +182,7 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
             Ok((compressed_bytes, mime_type)) => {
                 let compressed_size = compressed_bytes.len();
                 let savings_percent = if original_size > 0 {
-                    ((compressed_size as f64 - original_size as f64) / original_size as f64)
-                        * 100.0
+                    ((compressed_size as f64 - original_size as f64) / original_size as f64) * 100.0
                 } else {
                     0.0
                 };
