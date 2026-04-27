@@ -1,6 +1,6 @@
 [package]
 name = "panda_pixel_rs_desktop"
-version = "0.1.0-alpha"
+version = "0.1.2-alpha"
 edition = "2021"
 
 [build-dependencies]

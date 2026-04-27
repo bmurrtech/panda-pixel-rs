@@ -70,15 +70,20 @@ jobs:
           tool: tauri-cli@2.5.0
 
       - name: Build frontend (Unix)
-        if: matrix.platform != 'windows-latest'
+        if: matrix.platform == 'macos-latest'
         run: ./scripts/build-frontend.sh
 
-      - name: Build frontend (Windows)
+      - name: Build app (Linux helper script)
+        if: matrix.platform == 'ubuntu-latest'
+        run: ./scripts/linux-build.sh
+
+      - name: Build app (Windows helper script)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
-        run: ./build-frontend.ps1
+        run: ./scripts/windows-build.ps1
 
       - name: Build Tauri app (release with ThinLTO)
+        if: matrix.platform == 'macos-latest'
         working-directory: src-tauri
         shell: bash
         run: |
@@ -130,11 +135,22 @@ jobs:
         run: |
           set -euxo pipefail
 
-          # Search both possible target locations
-          ROOTS=("target/release/bundle" "src-tauri/target/release/bundle")
+          # Search target directories regardless of target triple layout
+          SEARCH_BASES=("target" "src-tauri/target")
+          ROOTS=()
+          for base in "${SEARCH_BASES[@]}"; do
+            if [[ -d "$base" ]]; then
+              while IFS= read -r dir; do
+                ROOTS+=("$dir")
+              done < <(find "$base" -type d -path "*/release/bundle" 2>/dev/null || true)
+            fi
+          done
+
+          echo "Discovered bundle roots:"
+          printf ' - %s\n' "${ROOTS[@]:-<none>}"
+
           ARTIFACTS=""
 
-          # Use direct find commands per platform (no string interpolation to avoid quoting issues)
           for root in "${ROOTS[@]}"; do
             if [[ ! -d "$root" ]]; then
               continue
@@ -162,12 +178,12 @@ jobs:
           # Fail-fast: artifacts must be non-empty
           if [[ -z "$ARTIFACTS" ]]; then
             echo "ERROR: No artifacts found for platform ${{ matrix.platform }}"
-            echo "Searched in: ${ROOTS[*]}"
+            echo "Searched bundle roots: ${ROOTS[*]:-<none>}"
             echo "Listing bundle directory contents:"
-            for root in "${ROOTS[@]}"; do
-              if [[ -d "$root" ]]; then
-                echo "Contents of $root:"
-                find "$root" -type f -maxdepth 5 2>/dev/null | head -20 || true
+            for base in "${SEARCH_BASES[@]}"; do
+              if [[ -d "$base" ]]; then
+                echo "Recent files in $base:"
+                find "$base" -type f 2>/dev/null | head -40 || true
               fi
             done
             exit 1

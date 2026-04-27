@@ -1,6 +1,6 @@
 {
   "productName": "Panda Pixel",
-  "version": "0.1.0-alpha",
+  "version": "0.1.2-alpha",
   "identifier": "com.pandapixel.desktop",
   "build": {
     "beforeDevCommand": "sh -c 'if [ -x ./scripts/dev-frontend.sh ]; then ./scripts/dev-frontend.sh; elif [ -x ../scripts/dev-frontend.sh ]; then ../scripts/dev-frontend.sh; elif [ -x ../../scripts/dev-frontend.sh ]; then ../../scripts/dev-frontend.sh; else echo \"dev-frontend.sh not found\" >&2; exit 127; fi'",
@@ -26,7 +26,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": "app",
+    "targets": "all",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -1,5 +1,5 @@
 [package]
-name = "rust_tinypng_clone_frontend"
+name = "padna_pixel_rs_frontend"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,7 +16,7 @@ console_error_panic_hook = "0.1"
 log = "0.4"
 
 [lib]
-name = "rust_tinypng_clone_frontend"
+name = "padna_pixel_rs_frontend"
 path = "lib.rs"
 crate-type = ["cdylib", "rlib"]
 

@@ -1,6 +1,6 @@
 {
   "name": "panda-pixel-rs-web",
-  "version": "0.1.0-alpha",
+  "version": "0.1.2-alpha",
   "private": true,
   "scripts": {
     "build:css": "tailwindcss -i ./src/style.css -o ./public/app.css --minify"

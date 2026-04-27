@@ -32,7 +32,7 @@
 
 Panda Pixel is a local-first desktop image compression, conversion, and correction tool that performs all processing on your machine. It provides TinyPNG-like compression quality with complete privacy and offline operation.
 
-- **Target Platforms**: macOS, Windows, Linux
+- **Target Platforms**: macOS-first, Windows, Linux
 - **Architecture**: Native desktop application (no Electron overhead)
 - **Privacy**: 100% local processing - no uploads to external servers
 - **Performance**: Native Rust performance with parallel processing
@@ -69,6 +69,29 @@ Panda Pixel eliminates these compromises:
 
 ## ⚡ Quick Start
 
+### Download Latest Release (Recommended)
+
+Download the latest prebuilt binaries from [GitHub Releases](https://github.com/bmurrtech/panda-pixel-rs/releases).
+
+<p align="left">
+  <img src="assets/release_assets.png" alt="GitHub release assets list" width="760">
+</p>
+
+1. Open the latest release page: [panda-pixel-rs releases](https://github.com/bmurrtech/panda-pixel-rs/releases).
+2. Click the **Assets** arrow to expand downloadable files.
+3. Download the file for your OS (`aarch64`, `x86_64`, or `universal` on macOS).
+4. Install/open the app.
+
+> **Note (unsigned app warning is expected):**
+> - **macOS:** You may see a Gatekeeper warning. Right-click the app, choose **Open**, then confirm **Open** again.
+> - **Windows:** You may see a SmartScreen warning. Click **More info** then **Run anyway**.
+>
+> These prompts are expected for unsigned alpha builds.
+
+If your OS/architecture is not listed in release assets, build from source below.
+
+## Build from Source
+
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/bmurrtech/panda-pixel-rs.git
@@ -99,6 +122,27 @@ Panda Pixel eliminates these compromises:
    ```bash
    cargo tauri build
    ```
+
+   *Alternatively, on macOS, you can use the helper script to generate universal DMGs:*
+   ```bash
+   ./scripts/macos-build-universal.sh
+   ```
+   This script produces versioned macOS DMGs for `aarch64`, `x86_64`, and `universal` (both, 2x larger file).
+
+   *Linux build helper script:*
+   ```bash
+   ./scripts/linux-build.sh
+   ```
+
+   *Windows build helper scripts:*
+   - Using PowerShell:
+     ```powershell
+     ./scripts/windows-build.ps1
+     ```
+   - Using Command Prompt (`cmd.exe`):
+     ```cmd
+     scripts\windows-build.bat
+     ```
    
 For detailed setup (including dev mode, web build, and troubleshooting), see [CONTRIBUTING.md](docs/contributing.md).
 

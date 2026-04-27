@@ -1,6 +1,6 @@
 {
   "productName": "Panda Pixel",
-  "version": "0.1.0-alpha",
+  "version": "0.1.2-alpha",
   "identifier": "com.pandapixel.app",
   "build": {
     "beforeDevCommand": "cd ../../apps/web && npm run build:css",
@@ -27,6 +27,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all"
+    "targets": "all",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
   }
 }

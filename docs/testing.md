@@ -268,12 +268,12 @@ cargo test -p compression
 cargo test -p api
 
 # Test the desktop app
-cargo test -p rust_tinypng_clone
+cargo test -p panda_pixel_rs_desktop
 ```
 
 **Expected output**: Tests for that specific package run and pass.
 
-> **Note**: The web frontend (`rust_tinypng_clone_frontend`) does not have unit tests by design. It's validated through WASM compilation checks and manual smoke tests.
+> **Note**: The web frontend (`padna_pixel_rs_frontend`) does not have unit tests by design. It's validated through WASM compilation checks and manual smoke tests.
 
 ### Run a Single Test or Pattern
 Run specific tests by name:
@@ -608,7 +608,7 @@ just validate     # Run all quality gates
 ## Troubleshooting
 
 ### WASM Compilation Fails
-**Symptoms**: `cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown` fails.
+**Symptoms**: `cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown` fails.
 
 **Checklist**:
 1. A native-only crate was accidentally added to `apps/web/Cargo.toml`
@@ -682,7 +682,7 @@ Before pushing your changes, verify all of these:
 - [ ] **Format**: `cargo fmt --check` passes
 - [ ] **Lint**: `cargo clippy --workspace --all-targets -- -D warnings` passes
 - [ ] **Tests**: `cargo test --workspace` passes
-- [ ] **WASM**: `cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown` passes
+- [ ] **WASM**: `cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown` passes
 - [ ] **Web Build**: `cd apps/web && trunk build --release` succeeds
 - [ ] **Manual Smoke Test**: `trunk serve` + `cargo run -p api` works in browser
 
@@ -710,8 +710,8 @@ This runs format, lint, test, and WASM check in sequence.
 - `domain` - Domain types and utilities
 - `compression` - Image compression logic
 - `api` - HTTP API server
-- `rust_tinypng_clone_frontend` - Web frontend (WASM)
-- `rust_tinypng_clone` - Desktop app (Tauri)
+- `padna_pixel_rs_frontend` - Web frontend (WASM)
+- `panda_pixel_rs_desktop` - Desktop app (Tauri)
 
 ### Key Directories
 - `apps/web/` - Web frontend source
@@ -728,7 +728,7 @@ cargo test --workspace                    # Run all tests
 cargo test -p domain                     # Test domain crate
 cargo test -p compression                 # Test compression crate
 cargo test -p api                         # Test API
-cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown  # Check WASM
+cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown  # Check WASM
 cd apps/web && trunk serve                # Serve web app
 cargo run -p api                          # Run API server
 ```
