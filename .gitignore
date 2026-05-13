@@ -2,6 +2,9 @@
 /target/
 **/target/
 Cargo.lock
+# Desktop Trunk UI (`src/`) is excluded from the workspace; keep its lockfile tracked so
+# `trunk build` / release CI resolve the same dependency graph as local dev.
+!/src/Cargo.lock
 
 # Tauri specific
 src-tauri/target/

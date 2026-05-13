@@ -571,7 +571,9 @@ impl AppBackend for HttpBackend {
             let status = resp.status();
             let text_promise = resp.text().unwrap_or_else(|_| {
                 let arr = js_sys::Array::new();
-                js_sys::Promise::resolve(&arr.join(""))
+                // `Array::join` returns `JsString`; newer `js_sys::Promise::resolve` is typed as
+                // `Promise<JsValue>`, so coerce through `JsValue` for CI (no `src/Cargo.lock`).
+                js_sys::Promise::resolve(&wasm_bindgen::JsValue::from(arr.join("")))
             });
             let text = JsFuture::from(text_promise)
                 .await
