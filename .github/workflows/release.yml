@@ -16,10 +16,13 @@ env:
   TRUNK_VERSION: trunk@0.21.14
   TAURI_CLI_VERSION: tauri-cli@2.9.1
   PRODUCT_NAME: Panda Pixel
-  # Mirror Makefile's `env -u NO_COLOR -u FORCE_COLOR` for Trunk 0.21 clap quirk.
-  # Empty values neutralize any upstream action that injects FORCE_COLOR=1, etc.
-  NO_COLOR: ""
-  FORCE_COLOR: ""
+  # Trunk 0.21's `--no-color` flag is clap-derive-bound to NO_COLOR and requires
+  # a strict `true|false` value when the env var is set. An empty string (`""`)
+  # makes clap reject parsing ("a value is required for '--no-color'"). The
+  # Makefile uses `env -u NO_COLOR` to truly UNSET locally; in GitHub Actions
+  # workflow-level `env:` re-applies per step, so we instead pin a valid bool.
+  # `true` = colors off in CI logs (clean) and satisfies clap's parser.
+  NO_COLOR: "true"
 
 jobs:
   publish:
