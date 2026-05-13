@@ -67,6 +67,23 @@ Panda Pixel eliminates these compromises:
 - **Fast**: Native Rust performance with parallel processing
 - **Transparent**: Fully open source, auditable codebase
 
+
+## 💻 Usage
+
+### Desktop Application
+
+1. **Select Images**: Click "📁 Select Images" or drag & drop files onto the window
+2. **Adjust Compression**: Use the slider to choose quality:
+   - **Low**: Best quality (70-90 range)
+   - **Mid**: Balanced (50-80 range) - *recommended*
+   - **Max**: Smallest file (20-60 range)
+3. **Choose Format**: Select output format (Auto, PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO)
+4. **Advanced Options** (optional):
+   - Enable oxipng optimization
+   - Enable PNG lossy compression
+5. **Compress/Convert**: Click "Compress/Convert" to process images
+6. **Download**: Click "📥 Download All" to save all compressed images to a folder
+
 ## ⚡ Quick Start
 
 ### Download Latest Release (Recommended)
@@ -82,11 +99,54 @@ Download the latest prebuilt binaries from [GitHub Releases](https://github.com/
 3. Download the file for your OS (`aarch64`, `x86_64`, or `universal` on macOS).
 4. Install/open the app.
 
-> **Note (unsigned app warning is expected):**
-> - **macOS:** You may see a Gatekeeper warning. Right-click the app, choose **Open**, then confirm **Open** again.
-> - **Windows:** You may see a SmartScreen warning. Click **More info** then **Run anyway**.
->
-> These prompts are expected for unsigned alpha builds.
+<details>
+<summary>🔎 <strong>Click to expand for help with unsigned app warnings & installation issues</strong> ⚠️</summary>
+
+<br/>
+
+### macOS: Handling Unsigned App Warnings
+
+Due to the app being unsigned or untested developer, you will likely see a security warning from Apple/Windows when launching Panda Pixel. This is normal for open source that hasn't gone through Apple's notarization process. **Proceed at your own risk.**
+
+#### How to Open Panda Pixel on macOS:
+
+1. **Double-click the downloaded `.dmg` and drag Panda Pixel into your Applications folder.**
+
+2. **Launch the app:**
+   - Open your Applications folder and double-click "Panda Pixel".
+   - If you see a "Can't be opened" security message, click the small **“?”** icon in the dialog.
+
+   <p align="left">
+     <img src="assets/AppleSecurity_Help.png" alt="Apple help icon" width="400">
+   </p>
+
+3. **In the message dialog, click "Open Privacy & Security Settings for me".**
+   - This takes you directly to the correct settings panel.
+
+   <p align="left">
+     <img src="assets/AppleSecurity_Nav.png" alt="Open Privacy & Security Settings" width="400">
+   </p>
+
+4. **Scroll down in Security & Privacy settings until you see a section mentioning "Panda Pixel.app".**
+   - Click the **Open Anyway** button to bypass the security block (you will only need to do this once per version).
+
+   <p align="left">
+     <img src="assets/AppleSecurity_Allow.png" alt="Allow app from unidentified developer" width="400">
+   </p>
+
+5. Confirm any prompts as needed. Panda Pixel should now launch.
+
+> _This warning appears because the app is unsigned (not notarized by Apple). This is expected for alpha/test releases. Proceed at your own discretion and risk._
+
+---
+
+#### Windows: SmartScreen Warning
+
+- If you see a Windows SmartScreen warning, click **More info**, then **Run anyway**.
+
+These prompts are expected for unsigned alpha builds and do not indicate a problem with the app.
+
+</details>
 
 If your OS/architecture is not listed in release assets, build from source below.
 
@@ -142,23 +202,6 @@ If your OS/architecture is not listed in release assets, build from source below
 Releases are tagged with the canonical SemVer format `vMAJOR.MINOR.PATCH[-PRERELEASE]` (e.g. `v1.2.3` or `v0.1.2-alpha`). Pushing such a tag triggers `.github/workflows/release.yml`, which builds artifacts for macOS, Linux, and Windows in parallel and publishes a GitHub Release.
 
 For the full versioning policy, manifest sync rules, and step-by-step release flow, see [Release Process](docs/contributing.md#release-process) in `CONTRIBUTING.md`.
-
-
-## 💻 Usage
-
-### Desktop Application
-
-1. **Select Images**: Click "📁 Select Images" or drag & drop files onto the window
-2. **Adjust Compression**: Use the slider to choose quality:
-   - **Low**: Best quality (70-90 range)
-   - **Mid**: Balanced (50-80 range) - *recommended*
-   - **Max**: Smallest file (20-60 range)
-3. **Choose Format**: Select output format (Auto, PNG, JPEG, WebP, AVIF, TIFF, BMP, ICO)
-4. **Advanced Options** (optional):
-   - Enable oxipng optimization
-   - Enable PNG lossy compression
-5. **Compress/Convert**: Click "Compress/Convert" to process images
-6. **Download**: Click "📥 Download All" to save all compressed images to a folder
 
 ## 🧬 Supported Formats
 
