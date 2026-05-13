@@ -22,6 +22,9 @@ ravif = "0.11"
 rgb = "0.8"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
+[dev-dependencies]
+tempfile = "3"
+
 [lib]
 name = "panda_pixel_rs_desktop"
 path = "src/lib.rs"

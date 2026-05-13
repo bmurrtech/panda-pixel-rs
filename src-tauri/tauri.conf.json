@@ -1,10 +1,17 @@
 {
   "productName": "Panda Pixel",
-  "version": "0.1.2-alpha",
+  "version": "0.1.4-alpha",
   "identifier": "com.pandapixel.desktop",
   "build": {
-    "beforeDevCommand": "sh -c 'if [ -x ./scripts/dev-frontend.sh ]; then ./scripts/dev-frontend.sh; elif [ -x ../scripts/dev-frontend.sh ]; then ../scripts/dev-frontend.sh; elif [ -x ../../scripts/dev-frontend.sh ]; then ../../scripts/dev-frontend.sh; else echo \"dev-frontend.sh not found\" >&2; exit 127; fi'",
-    "beforeBuildCommand": "sh -c 'if [ -x ./scripts/build-frontend.sh ]; then ./scripts/build-frontend.sh; elif [ -x ../scripts/build-frontend.sh ]; then ../scripts/build-frontend.sh; elif [ -x ../../scripts/build-frontend.sh ]; then ../../scripts/build-frontend.sh; else echo \"build-frontend.sh not found\" >&2; exit 127; fi'",
+    "beforeDevCommand": {
+      "script": "trunk serve --port 8080",
+      "cwd": "../src"
+    },
+    "beforeBuildCommand": {
+      "script": "trunk build --release",
+      "cwd": "../src"
+    },
+    "devUrl": "http://localhost:8080",
     "frontendDist": "../dist"
   },
   "app": {

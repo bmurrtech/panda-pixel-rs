@@ -3,11 +3,11 @@ target = "index.html"
 dist = "../../dist"
 public-url = "./"
 
-# Build Tailwind CSS before Trunk build
-[hooks.build]
-before = [
-    "npm run build:css"
-]
+# Trunk 0.21+: hooks are a list of { stage, command, command_arguments? }
+[[hooks]]
+stage = "pre_build"
+command = "npm"
+command_arguments = ["run", "build:css"]
 
 [serve]
 # Note: addresses format may vary by Trunk version

@@ -103,48 +103,45 @@ If your OS/architecture is not listed in release assets, build from source below
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
-3. **WebAssembly Target**:
+3. **One-time tooling** (desktop + Leptos `src/` frontend):
+
    ```bash
    rustup target add wasm32-unknown-unknown
-   ```
-
-4. **Trunk** (WASM bundler):
-   ```bash
    cargo install trunk
+   cargo install tauri-cli@2.9.1 --locked
    ```
 
-5. **Tauri CLI**:
-   ```bash
-   cargo install tauri-cli@2.5.0 --locked
-   ```
+4. **Desktop app**:
 
-6. **Build the application**:
    ```bash
    cargo tauri build
    ```
 
-   *Alternatively, on macOS, you can use the helper script to generate universal DMGs:*
-   ```bash
-   ./scripts/macos-build-universal.sh
-   ```
-   This script produces versioned macOS DMGs for `aarch64`, `x86_64`, and `universal` (both, 2x larger file).
+5. **Local Development / Build**
 
-   *Linux build helper script:*
-   ```bash
-   ./scripts/linux-build.sh
-   ```
+   - **Run Desktop App (dev):**
+     - `make dev-desktop`  
+       or  
+       `cargo tauri dev`
+   - **Run Web UI (dev):**
+     - `make dev-web`
+     - (Usually run `cargo run -p api` in another terminal for API)
+   - **Build Desktop Release:**
+     - `make build-desktop`  
+       or  
+       `cargo tauri build`
+   - **Troubleshooting:**  
+     - See [docs/troubleshooting.md](docs/troubleshooting.md) for solutions to CI/path issues
+   - **Reference Docs:**  
+     - [Layout, web vs desktop, releases](docs/contributing.md)
+     - [Parity matrix](docs/parity-matrix.md)
+     - [Tests and checks](docs/testing.md)
 
-   *Windows build helper scripts:*
-   - Using PowerShell:
-     ```powershell
-     ./scripts/windows-build.ps1
-     ```
-   - Using Command Prompt (`cmd.exe`):
-     ```cmd
-     scripts\windows-build.bat
-     ```
-   
-For detailed setup (including dev mode, web build, and troubleshooting), see [CONTRIBUTING.md](docs/contributing.md).
+### Releases
+
+Releases are tagged with the canonical SemVer format `vMAJOR.MINOR.PATCH[-PRERELEASE]` (e.g. `v1.2.3` or `v0.1.2-alpha`). Pushing such a tag triggers `.github/workflows/release.yml`, which builds artifacts for macOS, Linux, and Windows in parallel and publishes a GitHub Release.
+
+For the full versioning policy, manifest sync rules, and step-by-step release flow, see [Release Process](docs/contributing.md#release-process) in `CONTRIBUTING.md`.
 
 
 ## 💻 Usage
@@ -183,10 +180,21 @@ For detailed setup (including dev mode, web build, and troubleshooting), see [CO
 
 ## 🧪 Testing
 
-Run the test suite:
+To quickly test the **web** workspace app after making changes:
+
+   - **Terminal 1:** Start the API server
+     ```bash
+     cargo run -p api
+     ```
+   - **Terminal 2:** Serve the web frontend (`apps/web`)
+     ```bash
+     make dev-web
+     ```
+
+To validate changes, run the main test suite from the repository root:
 
 ```bash
-cargo test
+cargo test --workspace
 ```
 
 Tests cover:
@@ -195,7 +203,7 @@ Tests cover:
 - Format conversions (WebP, AVIF, TIFF, BMP, ICO)
 - Quality range parsing
 - Compression level presets
-
+> **See the full [Testing Guide](docs/testing.md) for setup, quality gates, workspace, WASM, and troubleshooting instructions.**
 
 ## 🛣️ Roadmap
 
@@ -279,10 +287,4 @@ _Open a GitHub Issue in this project’s repository to contact the maintainers f
 
 ## 🤝 Contributing
 
-Please see our [contributing guide](docs/contributing.md) for:
-
-- Development setup instructions
-- Building from source (detailed)
-- Code quality standards
-- Testing procedures
-- Pull request guidelines
+Please see [docs/contributing.md](docs/contributing.md) for setup, layout, web vs desktop, and PR expectations. See [docs/testing.md](docs/testing.md) for `cargo test`, Clippy/fmt, WASM checks, and smoke workflows.

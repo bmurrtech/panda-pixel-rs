@@ -1,393 +1,225 @@
 # Contributing to panda-pixel-rs
 
-Thank you for your interest in contributing to panda-pixel-rs! This document provides detailed guidelines for developers.
+Guidelines for developers: **architecture**, **layout**, **web vs desktop**, and **day-to-day dev**.  
+**Testing, parity checks, and pre-push validation** live in [docs/testing.md](testing.md).
 
-## Table of Contents
+## Table of contents
 
-- [Development Setup](#development-setup)
-- [Building from Source](#building-from-source)
-- [Development Workflow](#development-workflow)
-- [Code Quality](#code-quality)
-- [Testing](#testing)
-- [Submitting Changes](#submitting-changes)
-- [Release Process](#release-process)
+- [Development setup](#development-setup)
+- [Repository layout](#repository-layout)
+- [Web vs desktop](#web-vs-desktop)
+- [Building](#building)
+- [Parity (high level)](#parity-high-level)
+- [Development workflow](#development-workflow)
+- [Code quality](#code-quality)
+- [Submitting changes](#submitting-changes)
+- [Release process](#release-process)
+- [Getting help](#getting-help)
+- [License](#license)
 
-## Development Setup
+---
+
+## Development setup
 
 ### Prerequisites
 
-1. **Rust Toolchain**
-   ```bash
-   # Install Rust (if not already installed)
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+1. **Rust** — [rustup](https://rustup.rs/). Install the toolchain; the repo may pin via `rust-toolchain.toml`.
+2. **WASM target** (for Leptos frontends):
 
-   # Install WASM target for web frontend
+   ```bash
    rustup target add wasm32-unknown-unknown
    ```
 
-2. **Tauri CLI**
+3. **Tauri CLI** (desktop):
+
    ```bash
-   cargo install tauri-cli@2.5.0 --locked
+   cargo install tauri-cli@2.9.1 --locked
    ```
 
-3. **Trunk (WASM bundler)**
+4. **Trunk** (WASM bundler):
+
    ```bash
    cargo install trunk
    ```
 
-4. **Pre-commit Hooks (Prek)**
-```bash
-# Install Prek
-cargo install pre-commit
+5. **Node / npm** — only needed when working on Tailwind in `apps/web` (see [testing.md](testing.md) one-time setup).
 
-# Install hooks (sets up automatic quality checks on commit)
-prek install --install-hooks
-```
-
-### Repository Setup
+### Clone and verify
 
 ```bash
-# Clone the repository
 git clone https://github.com/bmurrtech/panda-pixel-rs.git
 cd panda-pixel-rs
-
-# Verify setup
 cargo check --workspace
 ```
 
-## Building from Source
+---
 
-### Monorepo Structure
+## Repository layout
 
-This project uses a monorepo structure with strict target isolation:
+Cargo workspace members are defined in root [Cargo.toml](../Cargo.toml). Excluded paths (e.g. `src/`) are built via `--manifest-path` or Trunk/Tauri, not `cargo check -p` from the workspace alone.
 
 ```
 panda-pixel-rs/
+├── Makefile         # `make dev-web`, `make dev-desktop`, `make build-desktop`
 ├── apps/
-│   ├── web/          # Web deployment (WASM-only)
-│   └── desktop/      # Desktop deployment (Tauri + native)
-├── crates/           # Shared code
-│   ├── domain/       # Platform-agnostic types
-│   └── compression/  # Image processing algorithms
-└── tests/            # Shared test fixtures
+│   ├── api/           # Axum HTTP API (compression via shared crate)
+│   └── web/           # Leptos CSR WASM (workspace member: panda_pixel_rs_web)
+├── src-tauri/         # Tauri desktop shell; embeds UI from ../src
+├── src/               # Leptos UI for desktop (Trunk); not a workspace member
+├── crates/
+│   ├── domain/        # Shared types / options
+│   └── compression/   # Shared image pipeline (API + desktop should use this)
+├── tests/fixtures/    # Shared binary fixtures for tests
+└── docs/              # contributing, testing, parity-matrix, …
 ```
 
-### Development Builds
+---
 
-#### Desktop Development
+## Web vs desktop
+
+| Surface | UI source | How it runs | Backend |
+|--------|-----------|-------------|---------|
+| **Desktop** | `src/` + Trunk | `make dev-desktop` or `cargo tauri dev` from repo root (hooks in [src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json): Trunk in `src/`) | Tauri commands, native FS |
+| **Web (workspace)** | `apps/web/` | `make dev-web` or `cd apps/web && trunk serve` (and usually `cargo run -p api` for full flow) | HTTP API when wired; see [parity-matrix.md](parity-matrix.md) |
+
+See [troubleshooting.md](troubleshooting.md) if `CI=true` in your shell changes Tauri behavior.
+
+### Critical Save Distinctions
+
+**Web browsers cannot save multiple files individually** (blocked by browser security policy). The UI adapts:
+- **Desktop**: Shows both "Save File(s)" and "Save as ZIP" buttons
+- **Web**: Shows only "Save as ZIP" button; files download individually to browser's default folder
+
+See [parity-matrix.md](parity-matrix.md) "Save Operations" and "Known Divergences → Save Behavior" for complete details.
+
+---
+
+## Building
+
+### Desktop (dev)
+
 ```bash
-# Hot reload development with debugging console
-unset CI && cargo tauri dev
+make dev-desktop
 ```
 
-You can run this from either:
-- repo root (`cargo tauri dev`)
-- `src-tauri/` (`cd src-tauri && cargo tauri dev`)
+Same as `cargo tauri dev` from the **repository root** (workspace `Cargo.toml`). Tauri runs Trunk for the Leptos UI in `src/` per [src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json). DevTools: F12 / Ctrl+Shift+I in the app window.
 
-Tauri hook scripts are auto-resolved via:
-- `scripts/dev-frontend.sh` (repo root)
-- `src-tauri/scripts/dev-frontend.sh` (wrapper)
+### Desktop (release bundle)
 
-**Key Features:**
-- **Hot Reload**: Automatically rebuilds and restarts when Rust code changes
-- **CSS Auto-build**: TailwindCSS compiles automatically via `beforeDevCommand`
-- **Debug Console**: Built-in developer tools accessible via F12 or Ctrl+Shift+I
-- **Window Management**: Auto-resizes based on content, supports drag & drop
-- **File Watching**: Monitors changes across the entire monorepo
-
-**Debugging with Console:**
-1. **Open DevTools**: Press `F12` or `Ctrl+Shift+I` in the app window
-2. **Console Logging**: View startup messages and debug output
-3. **Network Tab**: Monitor API calls (when implemented)
-4. **Application Tab**: Inspect local storage and app data
-5. **Sources Tab**: Debug Rust-generated WASM code
-
-**Console Messages You'll See:**
-```
-🚀 Panda Pixel starting (Tauri mode)
-📦 drag-drop: 3 files (sample: image1.png, image2.jpg, image3.webp)
-✅ Processed 3 dropped files
-```
-
-**Troubleshooting:**
-- If CSS doesn't update: Run `cd apps/web && npm run build:css` manually
-- If app doesn't start: Check for `CI=1` environment variable and unset it
-- If dev tools don't open: Look for `Failed to open devtools` in console
-
-#### Web Development (Optional)
 ```bash
-# Install Node.js dependencies for TailwindCSS
-cd apps/web && npm install
-
-# Build CSS (one-time or when styles change)
-cd apps/web && npm run build:css
-
-# Serve with hot reload
-cd apps/web && trunk serve
+cargo tauri build
 ```
 
-### Production Builds
+Same with `NO_COLOR` cleared for nested Trunk: `make build-desktop` from repo root.
 
-#### Desktop Application
+Outputs under `target/release/` and `target/release/bundle/` (platform-specific).
+
+### Web (`apps/web`)
+
 ```bash
-# Build desktop application with installer
-unset CI && cargo tauri build
-```
-
-Equivalent from `src-tauri/`:
-```bash
-cd src-tauri
-unset CI && cargo tauri build
-```
-
-**Output locations:**
-- **macOS**: `target/release/bundle/macos/Panda Pixel.app`
-- **Binary**: `target/release/panda_pixel_rs_desktop`
-
-#### Web Application (Optional)
-```bash
-# Build CSS
-cd apps/web && npm run build:css
-
-# Build WASM bundle
+cd apps/web && npm install && npm run build:css
+make dev-web
+# or: cd apps/web && trunk serve
 cd apps/web && trunk build --release
-
-# Output: apps/web/dist/
 ```
 
-## Development Workflow
+Tailwind / Trunk details: [testing.md](testing.md).
 
-### Daily Development Cycle
+---
 
-1. **Start development server**
+## Parity (high level)
+
+The project aims at **behavioral parity** between desktop and web: one shared **`crates/compression`** story, one UI direction behind an **`AppBackend`**-style boundary (see [parity-matrix.md](parity-matrix.md)).
+
+When you change compression or API contracts:
+
+- Touch **`crates/compression`** (and **`crates/domain`** as needed), not duplicate encoder logic.
+- Update **Tauri** (`src-tauri/`) and **API** (`apps/api/`) call sites together when behavior changes.
+- Run tests and any manual smoke steps in [testing.md](testing.md).
+
+---
+
+## Development workflow
+
+1. Create a branch; implement changes.
+2. **Validate** with [testing.md](testing.md): primarily `cargo test --workspace`, plus fmt/clippy and WASM checks before push.
+3. Open a PR with a clear description; link issues; add screenshots for UI changes.
+
+---
+
+## Code quality
+
+Primary automation is **Rust’s own toolchain**, not optional hook frameworks:
+
+| Check | Command |
+|-------|---------|
+| Tests | `cargo test --workspace` |
+| Format | `cargo fmt --check` (fix: `cargo fmt`) |
+| Lint | `cargo clippy --workspace --all-targets -- -D warnings` |
+| Compile | `cargo check --workspace` |
+| WASM | See [testing.md](testing.md) for `panda_pixel_rs_web` and `src/` (`padna_pixel_rs_frontend`) |
+
+### Commits
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) when possible, e.g. `feat:`, `fix:`, `docs:`.
+
+### Review (human)
+
+- No silent `unwrap`/`expect` in production paths without justification.
+- Public API / behavior changes reflected in docs or CHANGELOG as appropriate.
+- Compression or parity-sensitive changes: see [testing.md](testing.md) and [parity-matrix.md](parity-matrix.md).
+
+---
+
+## Submitting changes
+
+1. Branch from `main`: `git checkout -b feature/short-description`
+2. Follow [testing.md](testing.md) before push.
+3. PR should include: summary, test notes, screenshots if UI, breaking-change callouts if any.
+
+---
+
+## Release process
+
+### SemVer
+
+Tags use `vMAJOR.MINOR.PATCH[-PRERELEASE]` (e.g. `v1.2.3`, `v0.1.2-alpha`). Prereleases sort before the matching stable version.
+
+### Version sync
+
+Before tagging, align:
+
+| Location | Field |
+|----------|--------|
+| [Cargo.toml](../Cargo.toml) | `[workspace.package] version` |
+| [src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) | top-level `"version"` |
+
+CI should fail if tag and manifests disagree.
+
+### Steps
+
+1. Bump version in both places above; update [CHANGELOG.md](../CHANGELOG.md) if needed.
+2. Run validation from [testing.md](testing.md) (tests + recommended gates).
+3. Optional: `cargo tauri build` locally.
+4. Commit on `main`, then tag and push:
+
    ```bash
-   cargo tauri dev
+   git tag v0.1.3-alpha
+   git push origin v0.1.3-alpha
    ```
 
-2. **Make changes** to code
+Release workflow builds matrix artifacts and publishes a GitHub Release (see `.github/workflows/release.yml`).
 
-3. **Prek runs automatically** on commit (all quality checks enforced)
-   ```bash
-   git add .
-   git commit -m "feat: add new compression option"
-   # Prek automatically runs: format, lint, compile, test
-   ```
+---
 
-4. **If pre-commit fails**, fix issues and try again
-   ```bash
-   # Fix any reported issues, then commit again
-   git add .
-   git commit -m "feat: add new compression option"
-   ```
+## Getting help
 
-### Manual Quality Checks (if needed)
+- **Issues** — bugs and features  
+- **Discussions** — questions  
+- **Testing / CI failures** — [testing.md](testing.md)
 
-While prek handles automatic checks, you can run them manually:
-
-```bash
-# Run all checks
-prek run --all-files
-
-# Run specific checks
-prek run rust-fmt
-prek run rust-clippy
-prek run rust-check
-prek run rust-test
-```
-
-### Pre-commit Quality Gates
-
-The project uses Prek for invariant enforcement. All checks must pass before committing:
-
-```bash
-# Run all pre-commit checks
-prek run --all-files
-```
-
-Prek enforces:
-- No trailing whitespace or mixed line endings
-- Valid file formats (TOML, YAML, JSON)
-- No large files or private keys
-- Rust code formatting and linting
-
-## Code Quality
-
-### Rust Standards
-
-Prek automatically enforces:
-
-- **Formatting**: `cargo fmt --check --all` (auto-fix available)
-- **Linting**: `cargo clippy --workspace --all-targets -- -D warnings`
-- **Compilation**: `cargo check --workspace` (all targets)
-- **WASM Compatibility**: `cargo check -p panda_pixel_rs_web --target wasm32-unknown-unknown`
-- **Unit Tests**: `cargo test --workspace --lib` (fast tests only)
-
-### Commit Messages
-
-Follow conventional commit format:
-
-```bash
-# Good examples
-git commit -m "feat: add AVIF output format"
-git commit -m "fix: resolve memory leak in PNG compression"
-git commit -m "docs: update build instructions"
-
-# Bad examples
-git commit -m "update code"
-git commit -m "fix bug"
-```
-
-### Code Review Checklist
-
-Prek automatically verifies:
-- ✅ Code formatting (`cargo fmt`)
-- ✅ Clippy linting (warnings as errors)
-- ✅ Compilation on all targets
-- ✅ WASM compatibility
-- ✅ Unit tests pass
-
-Manual verification needed:
-- [ ] No `unwrap()` or `expect()` in production code
-- [ ] Documentation updated for public APIs
-- [ ] Breaking changes are clearly documented
-- [ ] UI/UX changes tested manually
-- [ ] Performance impact assessed for compression algorithms
-
-## Testing
-
-### Test Categories
-
-- **Unit Tests**: Co-located with code in `#[cfg(test)]` modules (runs in prek)
-- **Integration Tests**: HTTP-level tests in `apps/api/tests/` (manual, when needed)
-- **WASM Tests**: Manual validation via `trunk serve`
-- **Fixtures**: Centralized under `tests/fixtures/`
-
-### Running Tests Manually
-
-Unit tests run automatically in prek, but for manual testing:
-
-```bash
-# Run all tests (including integration)
-cargo test --workspace
-
-# Run specific test
-cargo test test_name
-
-# Run with output
-cargo test -- --nocapture
-
-# Test specific package
-cargo test -p compression
-```
-
-### Advanced Testing
-
-For comprehensive testing beyond prek:
-
-```bash
-# Test coverage report
-cargo install cargo-tarpaulin
-cargo tarpaulin --workspace --html --open
-
-# E2E tests (if configured)
-cargo nextest run --profile e2e
-
-# Fuzz tests (if configured)
-cargo test --release --package api --test fuzz_compression
-
-# Benchmarks
-cargo bench
-```
-
-See [docs/testing.md](testing.md) for comprehensive testing guidelines.
-
-## Submitting Changes
-
-### Pull Request Process
-
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/add-webp-support
-   ```
-
-2. **Make changes** and ensure quality gates pass
-
-3. **Update documentation** if needed
-
-4. **Submit PR** with:
-   - Clear title and description
-   - Reference to related issues
-   - Screenshots for UI changes
-   - Test coverage for new features
-
-### PR Template
-
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests pass
-- [ ] Manual testing completed
-
-## Screenshots (if applicable)
-<!-- Add screenshots for UI changes -->
-
-## Checklist
-- [ ] Prek checks pass
-- [ ] Code formatted
-- [ ] Clippy warnings resolved
-- [ ] Tests pass
-- [ ] Documentation updated
-```
-
-## Release Process
-
-### Version Bumping
-
-Follow semantic versioning (MAJOR.MINOR.PATCH):
-
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backward compatible)
-- **PATCH**: Bug fixes (backward compatible)
-
-### Release Steps
-
-1. **Update version** in `Cargo.toml` files
-2. **Update changelog** (if applicable)
-3. **Run full test suite**
-4. **Create release build**
-   ```bash
-   cargo tauri build
-   ```
-5. **Test the release build** on target platforms
-6. **Create GitHub release** with built binaries
-7. **Tag the release**
-   ```bash
-   git tag v1.2.3
-   git push origin v1.2.3
-   ```
-
-### Platform Testing
-
-Before releasing, test the built application on:
-- macOS (Intel + Apple Silicon)
-- Windows 10/11
-- Linux (Ubuntu/Debian)
-
-## Getting Help
-
-- **Issues**: Use GitHub issues for bugs and feature requests
-- **Discussions**: Use GitHub discussions for questions and general discussion
-- **Code of Conduct**: Be respectful and constructive in all interactions
+---
 
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under the GNU AGPLv3 license.
+Contributions are licensed under the same terms as the project (GNU AGPLv3 — see repository [LICENSE](../LICENSE)).

@@ -27,11 +27,35 @@ pub struct ErrorResponse {
     pub error: String,
 }
 
+/// Align output container flags with the UI / desktop `output_format` string (single flag on).
+fn apply_output_format(options: &mut CompressionOptions, output_format: &str) {
+    let fmt = output_format.trim();
+    options.to_webp = false;
+    options.to_avif = false;
+    options.to_jpeg = false;
+    options.to_png = false;
+    options.to_tiff = false;
+    options.to_bmp = false;
+    options.to_ico = false;
+    match fmt.to_lowercase().as_str() {
+        "webp" => options.to_webp = true,
+        "avif" => options.to_avif = true,
+        "jpeg" => options.to_jpeg = true,
+        "png" => options.to_png = true,
+        "tiff" => options.to_tiff = true,
+        "bmp" => options.to_bmp = true,
+        "ico" => options.to_ico = true,
+        "original" => {}
+        _ => options.to_webp = true,
+    }
+}
+
 /// POST /api/compress
 /// Compresses a single image file
 pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoResponse, ApiError> {
     let mut file_data: Option<(Vec<u8>, String)> = None;
     let mut options = CompressionOptions::default();
+    let mut output_format: Option<String> = None;
 
     // Parse multipart form data
     while let Some(field) = multipart
@@ -86,7 +110,18 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
             if let Ok(value) = field.text().await {
                 options.to_png = value.parse().unwrap_or(false);
             }
+        } else if name == "output_format" {
+            if let Ok(bytes) = field.bytes().await {
+                let value = String::from_utf8_lossy(&bytes).trim().to_string();
+                if !value.is_empty() {
+                    output_format = Some(value);
+                }
+            }
         }
+    }
+
+    if let Some(fmt) = output_format {
+        apply_output_format(&mut options, &fmt);
     }
 
     let (file_bytes, ext) = file_data.ok_or_else(|| {
@@ -128,6 +163,7 @@ pub async fn compress_image(mut multipart: Multipart) -> Result<impl IntoRespons
 pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoResponse, ApiError> {
     let mut files: Vec<(Vec<u8>, String)> = Vec::new();
     let mut options = CompressionOptions::default();
+    let mut output_format: Option<String> = None;
 
     // Parse multipart form data
     while let Some(field) = multipart
@@ -166,7 +202,18 @@ pub async fn compress_batch(mut multipart: Multipart) -> Result<impl IntoRespons
             if let Ok(value) = field.text().await {
                 options.oxipng = value.parse().unwrap_or(false);
             }
+        } else if name == "output_format" {
+            if let Ok(bytes) = field.bytes().await {
+                let value = String::from_utf8_lossy(&bytes).trim().to_string();
+                if !value.is_empty() {
+                    output_format = Some(value);
+                }
+            }
         }
+    }
+
+    if let Some(fmt) = output_format {
+        apply_output_format(&mut options, &fmt);
     }
 
     if files.is_empty() {

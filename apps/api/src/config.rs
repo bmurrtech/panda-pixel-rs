@@ -17,7 +17,7 @@ impl Config {
         let app_env = env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
 
         let port = env::var("PORT")
-            .unwrap_or_else(|_| "8080".to_string())
+            .unwrap_or_else(|_| "3000".to_string())
             .parse::<u16>()
             .context("PORT must be a valid u16")?;
 

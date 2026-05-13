@@ -15,6 +15,8 @@ pub struct CompressionResult {
     pub savings_percent: f64,
     pub mime_type: String,
     pub data: Vec<u8>,
+    #[serde(default)]
+    pub requested_output_format: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -157,6 +159,7 @@ pub async fn compress_image(
         savings_percent,
         mime_type,
         data: compressed_bytes,
+        requested_output_format: Some(output_format),
     })
 }
 
@@ -193,6 +196,7 @@ pub async fn compress_batch(
                     savings_percent: 0.0,
                     mime_type: String::new(),
                     data: Vec::new(),
+                    requested_output_format: None,
                 });
                 log::error!("Failed to compress {}: {}", file_path_clone, e);
             }
@@ -297,6 +301,16 @@ pub async fn check_file_collisions(
     Ok(collisions)
 }
 
+/// Returns display filenames that are unique in `output_folder` and within the batch (order-preserving).
+#[tauri::command]
+pub async fn resolve_unique_filenames(
+    output_folder: String,
+    filenames: Vec<String>,
+) -> Result<Vec<String>, String> {
+    let folder_path = Path::new(&output_folder);
+    crate::filename_unique::resolve_unique_names_for_disk(folder_path, &filenames)
+}
+
 #[tauri::command]
 pub async fn save_files_as_zip(
     output_folder: String,
@@ -314,19 +328,27 @@ pub async fn save_files_as_zip(
     fs::create_dir_all(folder_path).map_err(|e| format!("Failed to create folder: {}", e))?;
 
     let zip_path = folder_path.join(&zip_filename);
-    let zip_file = File::create(&zip_path).map_err(|e| format!("Failed to create ZIP file: {}", e))?;
+    let zip_file =
+        File::create(&zip_path).map_err(|e| format!("Failed to create ZIP file: {}", e))?;
 
     let mut zip = ZipWriter::new(zip_file);
     let file_options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::Deflated)
         .compression_level(Some(6));
 
-    for file in files {
-        let filename = file
-            .get("filename")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| "Missing filename".to_string())?;
+    let names: Vec<String> = files
+        .iter()
+        .map(|file| {
+            file.get("filename")
+                .and_then(|v| v.as_str())
+                .map(String::from)
+                .ok_or_else(|| "Missing filename".to_string())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
+    let unique_names = crate::filename_unique::uniquify_zip_entry_names(&names)?;
+
+    for (file, filename) in files.iter().zip(unique_names.iter()) {
         let data_array = file
             .get("data")
             .ok_or_else(|| format!("Missing data for {}", filename))?;

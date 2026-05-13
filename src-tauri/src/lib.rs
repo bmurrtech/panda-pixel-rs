@@ -1,6 +1,7 @@
 mod commands;
 mod compression;
 mod compression_options;
+mod filename_unique;
 
 /// Runs the Tauri desktop application.
 pub fn run() {
@@ -10,6 +11,7 @@ pub fn run() {
             commands::select_files,
             commands::handle_dropped_files,
             commands::check_file_collisions,
+            commands::resolve_unique_filenames,
             commands::compress_image,
             commands::compress_batch,
             commands::select_output_folder,

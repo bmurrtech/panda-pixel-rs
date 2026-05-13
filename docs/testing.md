@@ -1,9 +1,18 @@
 # Testing Guide
 
 ## Overview
-This guide explains how to run tests, quality gates, and smoke checks for the Rust monorepo.
 
-It is intentionally practical: run the commands, confirm the expected outcomes, and ship.
+This guide covers **tests**, **quality gates**, **WASM checks**, and **smoke** workflows for the Rust monorepo.
+
+**Repository layout, web vs desktop, and contributor workflow** are in [contributing.md](contributing.md).
+
+The **primary automated correctness gate** is:
+
+```bash
+cargo test --workspace
+```
+
+Run it before every push, along with format, Clippy, and WASM checks below.
 
 ---
 
@@ -73,170 +82,66 @@ cargo check --workspace
 
 ---
 
-## Prek Setup (Pre-Commit Quality Gates)
+## Primary quality gates (run before pushing)
 
-The repository uses Prek as the invariant enforcement layer and CI gate. Prek runs fast, deterministic checks that must pass before code can be committed or merged.
+Run these from the **repository root** unless noted.
 
-### Step 1: Install Prek
-Prek is a modern pre-commit hook manager:
-
-```bash
-# Install via uv (recommended)
-uv tool install prek
-
-# Or via pip
-pip install pre-commit
-
-# Or via brew (macOS)
-brew install pre-commit
-```
-
-### Step 2: Bootstrap Prek Configuration
-Prek configuration is defined in `prek.toml` at the repository root:
-
-```toml
-# prek.toml
-[[repos]]
-repo = "builtin"
-hooks = [
-  { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"] },
-  { id = "end-of-file-fixer" },
-  { id = "mixed-line-ending", args = ["--fix=auto"] },
-  { id = "check-toml" },
-  { id = "check-yaml", args = ["--allow-multiple-documents"] },
-  { id = "check-json" },
-  { id = "check-merge-conflict" },
-  { id = "detect-private-key" },
-  { id = "check-added-large-files", args = ["--maxkb", "1024", "--enforce-all"] },
-  { id = "check-case-conflict" },
-  { id = "check-symlinks" },
-]
-
-[[repos]]
-repo = "local"
-hooks = [
-  { id = "rust-fmt", name = "Rust Format Check", entry = "cargo fmt --check --all", language = "system", pass_filenames = false, require_serial = true },
-  { id = "rust-clippy", name = "Rust Clippy", entry = "cargo clippy --workspace --all-targets -- -D warnings", language = "system", pass_filenames = false, require_serial = true },
-  { id = "rust-check", name = "Rust Compilation Check", entry = "cargo check --workspace", language = "system", pass_filenames = false, require_serial = true },
-  { id = "rust-test", name = "Rust Unit Tests", entry = "cargo test --workspace --lib", language = "system", pass_filenames = false, require_serial = true },
-]
-```
-
-### Step 3: Install Git Hooks
-Enable automatic prek execution on commits:
+### Step 1: Tests (main validator)
 
 ```bash
-# From repository root
-prek install --install-hooks
-```
-
-**Expected output**: `pre-commit installed at .git/hooks/pre-commit`
-
-### Step 4: Verify Prek Setup
-Test that prek can run all checks:
-
-```bash
-# Run all checks on all files
-prek run --all-files
-```
-
-**Expected output**: All hooks pass (some may auto-fix files). If files are modified, stage and commit them.
-
----
-
-## Primary Quality Gates (Run Before Pushing)
-
-These are the core "ready to push" checks. Run them in order before committing your changes.
-
-### Step 1: Prek Invariant Checks
-Run prek to enforce code quality invariants:
-
-```bash
-# From repository root
-prek run --all-files
-```
-
-**If prek modifies files**, stage and commit those changes, then re-run prek.
-
-**Expected output**: All hooks pass. Prek enforces:
-- No trailing whitespace or mixed line endings
-- Valid TOML/YAML/JSON syntax
-- No large files or private keys committed
-- Consistent Rust code formatting, linting, compilation, and testing
-
-### Step 3: Format Check
-Check that all code is properly formatted:
-
-```bash
-# From repository root
-cargo fmt --check
-```
-
-**If formatting fails**, fix it automatically:
-
-```bash
-cargo fmt
-```
-
-Then run `cargo fmt --check` again to confirm.
-
-**Expected output**: No output means formatting is correct. Errors indicate files that need formatting.
-
-### Step 4: Lint Check
-Run Clippy to catch common mistakes and style issues:
-
-```bash
-# From repository root
-cargo clippy --workspace --all-targets -- -D warnings
-```
-
-**If warnings appear**, fix them. The `-D warnings` flag treats warnings as errors.
-
-**Expected output**: Compilation completes with no warnings or errors.
-
-### Step 5: Run All Tests
-Execute the full test suite:
-
-```bash
-# From repository root
 cargo test --workspace
 ```
 
-**Expected output**: All tests pass. You'll see output like:
-```
-running 2 tests
-test result: ok. 2 passed; 0 failed; 0 ignored
-```
+**Expected output**: All packages’ tests pass. If something fails, fix or update tests in the same change.
 
-### Step 6: Verify WASM Compilation
-Ensure the web frontend can compile for WebAssembly (prevents native-only dependencies from creeping in):
+### Step 2: Format
 
 ```bash
-# From repository root
-cargo check -p rust_tinypng_clone_frontend --target wasm32-unknown-unknown
+cargo fmt --check
 ```
 
-**Expected output**: Compilation succeeds without errors.
-
-### Step 5: Build Web Frontend
-Build the web frontend with Trunk to verify the TailwindCSS pipeline works:
+If this fails:
 
 ```bash
-# Navigate to web app directory
-cd apps/web
-
-# Build for release
-trunk build --release
-
-# Return to repository root
-cd ../..
+cargo fmt
+cargo fmt --check
 ```
 
-**Expected output**: 
-- TailwindCSS generates `public/app.css`
-- Trunk builds the WASM bundle
-- Build completes successfully
-- Output is in `dist/` directory (relative to repository root)
+### Step 3: Lint
+
+```bash
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+### Step 4: Workspace compile
+
+```bash
+cargo check --workspace
+```
+
+### Step 5: WASM compile checks
+
+There are **two** Leptos frontends:
+
+1. **Workspace member** `apps/web` (package `panda_pixel_rs_web`):
+
+```bash
+cargo check -p panda_pixel_rs_web --target wasm32-unknown-unknown
+```
+
+2. **Tauri UI** under `src/` (not a workspace member; package `padna_pixel_rs_frontend`):
+
+```bash
+cargo check --manifest-path src/Cargo.toml --target wasm32-unknown-unknown
+```
+
+### Step 6: Optional Trunk release build (`apps/web`)
+
+```bash
+cd apps/web && trunk build --release && cd ../..
+```
+
+Confirms Tailwind + Trunk for the workspace web app. The **desktop** bundle uses Trunk from `src/` via Tauri; validate that path with `cargo tauri build` when you change the embedded UI.
 
 ---
 
@@ -273,7 +178,7 @@ cargo test -p panda_pixel_rs_desktop
 
 **Expected output**: Tests for that specific package run and pass.
 
-> **Note**: The web frontend (`padna_pixel_rs_frontend`) does not have unit tests by design. It's validated through WASM compilation checks and manual smoke tests.
+> **Note**: Leptos frontends (`apps/web` as `panda_pixel_rs_web`, and `src/` as `padna_pixel_rs_frontend` for Tauri) rely on **WASM compile checks** and **manual smoke** more than workspace unit tests in those crates. Add tests in `crates/compression`, `crates/domain`, and `apps/api` for shared behavior.
 
 ### Run a Single Test or Pattern
 Run specific tests by name:
@@ -306,6 +211,36 @@ cargo test --workspace -- --ignored
 ```
 
 **Use case**: Running comprehensive but slow tests before releases.
+
+---
+
+## Parity and pre-release checks
+
+Behavioral parity between **desktop (Tauri)** and **web (WASM + API)** is tracked in [parity-matrix.md](parity-matrix.md). Automated regression is centered on the **shared Rust crates** the UI depends on.
+
+### Focused test runs (after touching compression or API)
+
+```bash
+cargo test -p compression
+cargo test -p domain
+cargo test -p api
+```
+
+### API integration (HTTP contract)
+
+```bash
+cargo test -p api --test api_tests
+```
+
+### Pre-release (optional stricter pass)
+
+```bash
+cargo test --workspace
+# Optional clean rebuild if you suspect stale artifacts:
+# cargo clean && cargo test --workspace
+```
+
+Then run **manual smoke** below for the surfaces you changed (desktop, `apps/web`, and/or `src/` + API).
 
 ---
 
@@ -431,92 +366,76 @@ fn test_with_fixture() {
 
 ---
 
-## Manual Smoke Tests (Required for WASM Frontend)
+## Manual smoke (browser + API)
 
-The web frontend requires manual testing since it runs in a browser. Follow these steps:
+Leptos in the browser needs a **running API** when using the HTTP backend. Use **two terminals**. Avoid port clashes: run the API on **8081** and Trunk on **8080** (or adjust consistently and update `CORS_ALLOWED_ORIGINS`).
 
-### Step 1: Start the API Server
-The API must start without requiring a `.env` file. Set environment variables and run:
+### Step 1: API server
 
 ```bash
 # From repository root
 export APP_ENV=development
-export PORT=8080
+export PORT=8081
 export CORS_ALLOWED_ORIGINS="http://localhost:8080"
 export RUST_LOG=info
 
-# Start the API
 cargo run -p api
 ```
 
-**Expected output**:
-- API starts successfully
-- You see: `Starting API server on 0.0.0.0:8080`
-- Config validation happens at startup
-- If required env vars are missing, you get a clear error and the process exits
+Keep this terminal open.
 
-**Keep this terminal open** - the API needs to keep running.
+### Step 2: Trunk (pick one UI tree)
 
-### Step 2: Start the Web Dev Server
-In a **new terminal**, start the web frontend:
+**Variant A — `apps/web` (workspace member)**
 
 ```bash
-# Navigate to web app directory
 cd apps/web
-
-# Start Trunk dev server
 trunk serve
 ```
 
-**Expected output**:
-- Trunk builds the WASM bundle
-- TailwindCSS generates the CSS
-- Server starts on `http://localhost:8080` (or another port if 8080 is taken)
-- Browser automatically opens (or navigate manually)
+Open the URL Trunk prints (often `http://localhost:8080`).
 
-### Step 3: Browser Checklist
-In the browser, verify:
+**Variant B — `src/` (same UI Tauri dev loads)**
 
-- [ ] **Web app loads**: The UI appears with no console errors
-- [ ] **Tailwind styling works**: Buttons, layout, colors are styled correctly
-- [ ] **Upload single image**: Select an image and compress it
-- [ ] **Batch compression**: Upload multiple images and compress them
-- [ ] **Error handling**: Try uploading an invalid file (e.g., `.txt`) and confirm a clean error message
-- [ ] **Network tab check**: Open browser DevTools → Network tab:
-  - No secrets exposed in requests
-  - API calls go to correct endpoint (`/api/compress`)
-  - No unexpected 4xx/5xx errors
-  - CORS headers are present (if applicable)
+```bash
+cd src
+trunk serve --port 8080
+```
+
+Use the same API base URL / CORS your build expects (if the UI defaults to `localhost:8081`, align env; otherwise configure per app).
+
+### Step 3: Browser checklist
+
+- [ ] App loads without console errors; styles look correct
+- [ ] Select image(s), compress, results appear
+- [ ] Invalid file (e.g. `.txt`) shows a clean error
+- [ ] DevTools → Network: requests hit the expected API host/port; no secrets in payloads
 
 ### Step 4: Cleanup
-When done testing:
 
-1. Stop the Trunk server: Press `Ctrl+C` in the terminal running `trunk serve`
-2. Stop the API server: Press `Ctrl+C` in the terminal running `cargo run -p api`
+`Ctrl+C` in each terminal.
 
 ---
 
-## Desktop Validation (Optional)
+## Desktop validation
 
-The desktop app is local-only and uses Tauri commands (no HTTP calls in MVP).
+Tauri loads the UI from `src/` (see `src-tauri/tauri.conf.json`). Compression and FS use **Tauri commands** unless your build routes through the HTTP backend; see [parity-matrix.md](parity-matrix.md).
 
 ### Build Desktop App
 From the repository root:
 
 ```bash
-unset CI && cargo tauri build
+cargo tauri build
 ```
 
 Equivalent from `src-tauri/`:
 
 ```bash
 cd src-tauri
-unset CI && cargo tauri build
+cargo tauri build
 ```
 
-The desktop build hooks auto-resolve frontend scripts from either location:
-- `scripts/build-frontend.sh` (repo root)
-- `src-tauri/scripts/build-frontend.sh` (wrapper)
+Tauri's `beforeBuildCommand` (in `src-tauri/tauri.conf.json`) runs `trunk build --release` with working directory `src/`.
 
 **Expected output**: 
 - Compilation completes
@@ -530,14 +449,14 @@ For development and testing:
 
 ```bash
 # From repository root
-unset CI && cargo tauri dev
+cargo tauri dev
 ```
 
 Equivalent from `src-tauri/`:
 
 ```bash
 cd src-tauri
-unset CI && cargo tauri dev
+cargo tauri dev
 ```
 
 **Expected output**:
@@ -608,17 +527,19 @@ just validate     # Run all quality gates
 ## Troubleshooting
 
 ### WASM Compilation Fails
-**Symptoms**: `cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown` fails.
+
+**Symptoms**: `cargo check -p panda_pixel_rs_web --target wasm32-unknown-unknown` or `cargo check --manifest-path src/Cargo.toml --target wasm32-unknown-unknown` fails.
 
 **Checklist**:
-1. A native-only crate was accidentally added to `apps/web/Cargo.toml`
+
+1. A native-only crate was added to the **failing** frontend `Cargo.toml`
 2. A dependency enables native default features
-3. A dependency doesn't support WASM target
+3. A dependency does not support the WASM target
 
 **Fix**:
-- Remove the problematic dependency from `apps/web/Cargo.toml`
-- Use `default-features = false` where appropriate
-- Split native functionality into separate crates (e.g., `crates/compression`)
+
+- Remove or gate the dependency; prefer `default-features = false`
+- Keep heavy codecs in `crates/compression` (native / server), not in WASM crates
 
 ### API Integration Tests Fail
 **Checklist**:
@@ -675,18 +596,20 @@ The project focuses on high-value tests rather than 100% coverage:
 
 ---
 
-## "Ready to Push" Checklist
+## "Ready to Push" checklist
 
 Before pushing your changes, verify all of these:
 
+- [ ] **Tests**: `cargo test --workspace` passes
 - [ ] **Format**: `cargo fmt --check` passes
 - [ ] **Lint**: `cargo clippy --workspace --all-targets -- -D warnings` passes
-- [ ] **Tests**: `cargo test --workspace` passes
-- [ ] **WASM**: `cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown` passes
-- [ ] **Web Build**: `cd apps/web && trunk build --release` succeeds
-- [ ] **Manual Smoke Test**: `trunk serve` + `cargo run -p api` works in browser
+- [ ] **WASM**: Both checks pass:
+  - `cargo check -p panda_pixel_rs_web --target wasm32-unknown-unknown`
+  - `cargo check --manifest-path src/Cargo.toml --target wasm32-unknown-unknown`
+- [ ] **Web build** (if you touched `apps/web`): `cd apps/web && trunk build --release`
+- [ ] **Manual smoke** (if you touched WASM UI or API): API + Trunk as in [Manual smoke](#manual-smoke-browser--api); optional `cargo tauri dev` for desktop
 
-### Test Contribution Notes (Before PR)
+### Test contribution notes (before PR)
 
 - Add new cross-crate or scenario tests under the top-level `tests/` directory.
 - Keep unit tests co-located in `#[cfg(test)]` modules for module-private logic.
@@ -694,55 +617,50 @@ Before pushing your changes, verify all of these:
 - Keep fixtures small and deterministic under `tests/fixtures/`.
 - If a test is expensive, mark it `#[ignore]` with a clear reason and run instructions.
 
-**Quick validation command** (if using `just`):
-
-```bash
-just validate
-```
-
-This runs format, lint, test, and WASM check in sequence.
+**Optional:** If the repo provides a `justfile`, `just validate` may bundle fmt, lint, test, and WASM checks—use it only if maintained alongside this document.
 
 ---
 
 ## Quick Reference
 
-### Package Names
-- `domain` - Domain types and utilities
-- `compression` - Image compression logic
-- `api` - HTTP API server
-- `padna_pixel_rs_frontend` - Web frontend (WASM)
-- `panda_pixel_rs_desktop` - Desktop app (Tauri)
+### Package names
 
-### Key Directories
-- `apps/web/` - Web frontend source
-- `apps/api/` - API server source
-- `apps/desktop/src-tauri/` - Desktop app source
-- `crates/domain/` - Shared domain types
-- `crates/compression/` - Shared compression logic
-- `tests/fixtures/` - Test image files
+- `domain` — domain types and utilities
+- `compression` — image compression logic
+- `api` — HTTP API server
+- `panda_pixel_rs_web` — `apps/web` Leptos WASM (workspace member)
+- `padna_pixel_rs_frontend` — `src/` Leptos WASM (Tauri UI; use `--manifest-path src/Cargo.toml`)
+- `panda_pixel_rs_desktop` — Tauri desktop (`src-tauri/`)
 
-### Common Commands
+### Key directories
+
+- `apps/web/` — workspace web frontend
+- `apps/api/` — API server
+- `src-tauri/` — desktop shell
+- `src/` — Leptos UI embedded by Tauri (Trunk)
+- `crates/domain/`, `crates/compression/` — shared libraries
+- `tests/fixtures/` — test binaries
+
+### Common commands
+
 ```bash
-# From repository root
-cargo test --workspace                    # Run all tests
-cargo test -p domain                     # Test domain crate
-cargo test -p compression                 # Test compression crate
-cargo test -p api                         # Test API
-cargo check -p padna_pixel_rs_frontend --target wasm32-unknown-unknown  # Check WASM
-cd apps/web && trunk serve                # Serve web app
-cargo run -p api                          # Run API server
+cargo test --workspace
+cargo test -p compression
+cargo test -p api --test api_tests
+cargo check -p panda_pixel_rs_web --target wasm32-unknown-unknown
+cargo check --manifest-path src/Cargo.toml --target wasm32-unknown-unknown
+cargo tauri dev
+make dev-web
+export PORT=8081 CORS_ALLOWED_ORIGINS="http://localhost:8080" && cargo run -p api
 ```
 
 ---
 
-## Getting Help
+## Getting help
 
-If you encounter issues not covered here:
+1. Read the error output (Rust is usually explicit).
+2. Confirm [One-time setup](#one-time-setup) and that commands run from the repo root unless stated otherwise.
+3. See [contributing.md](contributing.md) for layout and web vs desktop.
+4. See [troubleshooting.md](troubleshooting.md) for shell/env quirks (`CI`, `NO_COLOR`, run directory), and [Troubleshooting](#troubleshooting) in this file for test/build flow.
 
-1. Check the error message carefully - Rust compiler errors are usually very helpful
-2. Verify your setup matches the "One-Time Setup" section
-3. Ensure you're running commands from the repository root (unless specified otherwise)
-4. Check that all dependencies are installed (`rustup`, `trunk`, `npm` packages)
-5. Review the troubleshooting section above
-
-For project-specific questions, consult the main `README.md` or project documentation.
+For product questions, use GitHub Issues or Discussions.

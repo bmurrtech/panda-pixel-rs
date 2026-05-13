@@ -1,10 +1,10 @@
-use leptos::prelude::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn ProgressBar(state: AppState) -> impl IntoView {
     let show = move || state.is_compressing.get();
-    let progress = move || state.progress.get();
+    let progress = move || state.progress.get().clamp(0.0, 100.0);
 
     view! {
         <Show when=show>
