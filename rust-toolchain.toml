@@ -1,3 +1,8 @@
 [toolchain]
-channel = "stable"
+# Pinned to match `.github/workflows/release.yml` dtolnay/rust-toolchain step.
+# `targets` ensures `rustup` auto-installs the wasm32 target on first activation,
+# so trunk's `cargo build --target=wasm32-unknown-unknown` works without a
+# separate `rustup target add` step in CI or local dev.
+channel = "1.89.0"
 components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
