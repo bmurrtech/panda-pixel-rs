@@ -140,6 +140,13 @@ jobs:
         shell: bash
         run: rustup target add ${{ matrix.rust_targets }}
 
+      # `ravif` → `rav1e` enables x86_64 NASM assembly when building `x86_64-apple-darwin`
+      # (Intel DMG + universal binary's Intel slice). GHA macOS images do not ship NASM;
+      # without it, `rav1e`'s build script panics. Apple Silicon–only jobs skip this.
+      - name: Install NASM (macOS x86_64 / universal Rav1e)
+        if: runner.os == 'macOS' && contains(matrix.rust_targets, 'x86_64-apple-darwin')
+        run: brew install nasm
+
       - name: Cache Rust dependencies and build artifacts
         uses: Swatinem/rust-cache@v2
         with:
