@@ -7,10 +7,9 @@
 *TinyPNG clone — a rust Red Panda alternative with bonus features!*
 
 [![Star on GitHub](https://img.shields.io/badge/Star-on_GitHub-blue?logo=github)](https://github.com/bmurrtech/panda-pixel-rs)
-[![Share this project](https://img.shields.io/badge/Share-this_project-1DA1F2?logo=share)](https://github.com/bmurrtech/panda-pixel-rs)
 [![Downloads](https://img.shields.io/github/downloads/bmurrtech/panda-pixel-rs/total?color=success)](https://github.com/bmurrtech/panda-pixel-rs/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/bmurrtech/panda-pixel-rs/ci.yml?branch=main)](https://github.com/bmurrtech/panda-pixel-rs/actions)
-[![Latest Release](https://img.shields.io/github/v/release/bmurrtech/panda-pixel-rs?label=release)](https://github.com/bmurrtech/panda-pixel-rs/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/bmurrtech/panda-pixel-rs/ci.yml?branch=main&logo=github)](https://github.com/bmurrtech/panda-pixel-rs/actions/workflows/ci.yml?query=branch%3Amain)
+[![Latest Release](https://img.shields.io/github/v/release/bmurrtech/panda-pixel-rs?include_prereleases&label=release&logo=github)](https://github.com/bmurrtech/panda-pixel-rs/releases)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
 [![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
 [![UI - Tauri v2](https://img.shields.io/badge/ui-Tauri_v2-FFC131.svg)](https://v2.tauri.app/)

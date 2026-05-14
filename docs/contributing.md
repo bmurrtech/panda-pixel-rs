@@ -143,7 +143,8 @@ When you change compression or API contracts:
 
 1. Create a branch; implement changes.
 2. **Validate** with [testing.md](testing.md): primarily `cargo test --workspace`, plus fmt/clippy and WASM checks before push.
-3. Open a PR with a clear description; link issues; add screenshots for UI changes.
+3. Pushes and pull requests to `main` run [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) on Ubuntu (format, Clippy, workspace tests).
+4. Open a PR with a clear description; link issues; add screenshots for UI changes.
 
 ---
 
