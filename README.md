@@ -6,11 +6,18 @@
 
 *TinyPNG clone — a rust Red Panda alternative with bonus features!*
 
+[![Star on GitHub](https://img.shields.io/badge/Star-on_GitHub-blue?logo=github)](https://github.com/bmurrtech/panda-pixel-rs)
+[![Share this project](https://img.shields.io/badge/Share-this_project-1DA1F2?logo=share)](https://github.com/bmurrtech/panda-pixel-rs)
+[![Downloads](https://img.shields.io/github/downloads/bmurrtech/panda-pixel-rs/total?color=success)](https://github.com/bmurrtech/panda-pixel-rs/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/bmurrtech/panda-pixel-rs/ci.yml?branch=main)](https://github.com/bmurrtech/panda-pixel-rs/actions)
+[![Latest Release](https://img.shields.io/github/v/release/bmurrtech/panda-pixel-rs?label=release)](https://github.com/bmurrtech/panda-pixel-rs/releases)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue.svg)](https://www.rust-lang.org/)
 [![Built with Rust](https://img.shields.io/badge/built_with-Rust-orange.svg)](https://www.rust-lang.org/)
 [![UI - Tauri v2](https://img.shields.io/badge/ui-Tauri_v2-FFC131.svg)](https://v2.tauri.app/)
 [![Frontend - Leptos](https://img.shields.io/badge/frontend-Leptos-red.svg)](https://leptos.dev/)
 [![License - GNU AGPLv3](https://img.shields.io/badge/license-GNU%20AGPLv3-blue.svg)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi)](https://ko-fi.com/bmurrtech)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/bmurrtech)
 
 <p align="center">
   <picture>
@@ -25,8 +32,6 @@
 </p>
 
 </div>
-
----
 
 ## 💡 About
 
@@ -82,7 +87,25 @@ Panda Pixel eliminates these compromises:
    - Enable oxipng optimization
    - Enable PNG lossy compression
 5. **Compress/Convert**: Click "Compress/Convert" to process images
-6. **Download**: Click "📥 Download All" to save all compressed images to a folder
+6. **Download**: Click a "Save" option to download compressed images to a folder
+
+## 🧬 Supported Formats
+
+| Input | Output | Notes |
+|-------|--------|-------|
+| PNG | PNG, WebP, AVIF, JPEG, TIFF, BMP, ICO | TinyPNG-like quantization |
+| JPEG | JPEG, WebP, AVIF, PNG, TIFF, BMP, ICO | mozjpeg optimization |
+| HEIC/HEIF | JPEG | Auto-converts like TinyPNG |
+| WebP | All formats | Full decode/re-encode |
+| TIFF, BMP | All formats | Standard image processing |
+
+## 🚀 Performance
+
+- **PNG**: Uses libimagequant for TinyPNG-like compression + oxipng optimization
+- **JPEG**: mozjpeg encoder with progressive mode and trellis quantization
+- **WebP**: High-quality lossy encoding optimized for web
+- **AVIF**: Modern format with superior compression ratios
+- **Parallel Processing**: Automatic CPU detection for optimal performance
 
 ## ⚡ Quick Start
 
@@ -148,127 +171,48 @@ These prompts are expected for unsigned alpha builds and do not indicate a probl
 
 </details>
 
-If your OS/architecture is not listed in release assets, build from source below.
 
-## Build from Source
+## 🛠️ Build from Source
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/bmurrtech/panda-pixel-rs.git
-   cd panda-pixel-rs
-   ```
+If your OS or architecture is not covered by release binaries, follow [docs/build.md](docs/build.md) for step-by-step build instructions.
 
-2. **Install Rust** (if not already installed):
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
+## 🩹 Troubleshooting
 
-3. **One-time tooling** (desktop + Leptos `src/` frontend):
-
-   ```bash
-   rustup target add wasm32-unknown-unknown
-   cargo install trunk
-   cargo install tauri-cli@2.9.1 --locked
-   ```
-
-4. **Desktop app**:
-
-   ```bash
-   cargo tauri build
-   ```
-
-5. **Local Development / Build**
-
-   - **Run Desktop App (dev):**
-     - `make dev-desktop`  
-       or  
-       `cargo tauri dev`
-   - **Run Web UI (dev):**
-     - `make dev-web`
-     - (Usually run `cargo run -p api` in another terminal for API)
-   - **Build Desktop Release:**
-     - `make build-desktop`  
-       or  
-       `cargo tauri build`
-   - **Troubleshooting:**  
-     - See [docs/troubleshooting.md](docs/troubleshooting.md) for solutions to CI/path issues
-   - **Reference Docs:**  
-     - [Layout, web vs desktop, releases](docs/contributing.md)
-     - [Parity matrix](docs/parity-matrix.md)
-     - [Tests and checks](docs/testing.md)
-
-### Releases
-
-Releases are tagged with the canonical SemVer format `vMAJOR.MINOR.PATCH[-PRERELEASE]` (e.g. `v1.2.3` or `v0.1.2-alpha`). Pushing such a tag triggers `.github/workflows/release.yml`, which builds artifacts for macOS, Linux, and Windows in parallel and publishes a GitHub Release.
-
-For the full versioning policy, manifest sync rules, and step-by-step release flow, see [Release Process](docs/contributing.md#release-process) in `CONTRIBUTING.md`.
-
-## 🧬 Supported Formats
-
-| Input | Output | Notes |
-|-------|--------|-------|
-| PNG | PNG, WebP, AVIF, JPEG, TIFF, BMP, ICO | TinyPNG-like quantization |
-| JPEG | JPEG, WebP, AVIF, PNG, TIFF, BMP, ICO | mozjpeg optimization |
-| HEIC/HEIF | JPEG | Auto-converts like TinyPNG |
-| WebP | All formats | Full decode/re-encode |
-| TIFF, BMP | All formats | Standard image processing |
-
-## ⚡ Performance
-
-- **PNG**: Uses libimagequant for TinyPNG-like compression + oxipng optimization
-- **JPEG**: mozjpeg encoder with progressive mode and trellis quantization
-- **WebP**: High-quality lossy encoding optimized for web
-- **AVIF**: Modern format with superior compression ratios
-- **Parallel Processing**: Automatic CPU detection for optimal performance
-
-## 🧪 Testing
-
-To quickly test the **web** workspace app after making changes:
-
-   - **Terminal 1:** Start the API server
-     ```bash
-     cargo run -p api
-     ```
-   - **Terminal 2:** Serve the web frontend (`apps/web`)
-     ```bash
-     make dev-web
-     ```
-
-To validate changes, run the main test suite from the repository root:
-
-```bash
-cargo test --workspace
-```
-
-Tests cover:
-- PNG compression with various quality settings
-- JPEG compression
-- Format conversions (WebP, AVIF, TIFF, BMP, ICO)
-- Quality range parsing
-- Compression level presets
-> **See the full [Testing Guide](docs/testing.md) for setup, quality gates, workspace, WASM, and troubleshooting instructions.**
+Encountering issues during install or build? Check out [docs/troubleshooting.md](docs/troubleshooting.md) for solutions, common pitfalls, and environment-specific workarounds.
 
 ## 🛣️ Roadmap
 
-#### Local, Private AI-Powered Image Enhancement
+- Local, Private AI-powered Image Enhancement
+- Local, Private AI-Powered Background Removal
+- Vector Output & SVG Creation
 
-- [ ] **Image Upscaling**: Fast single image super-resolution (SISR) models for ultra high-quality upscaling
-  - [ ] **Real-World Images:**
-    - [ ] 2x & 4x upscale (e.g. [Xenova/swin2SR-classical-sr-x2-64](https://huggingface.co/Xenova/swin2SR-classical-sr-x2-64), [andrewdalpino/UltraZoom-2X](https://huggingface.co/andrewdalpino/UltraZoom-2X))
-  - [ ] **APISR Images (Anime Production Inspired Super-Resolution):**
-    - [ ] 4x upscale ([Xenova/4x_APISR_GRL_GAN_generator-onnx](https://huggingface.co/Xenova/4x_APISR_GRL_GAN_generator-onnx))
-- [ ] **Resolution Improvement**: AI-powered enhancement to improve image quality while compressing
+_Planned and exploratory work—see [docs/roadmap.md](docs/roadmap.md) for details._
 
-- [ ] **ONNX Runtime Integration**: Using [ort](https://ort.pyke.io/) for optimized ONNX model inference
-  - [ ] Hardware acceleration support (CUDA, TensorRT, OpenVINO, QNN, CANN)
-  - [ ] Efficient I/O binding for optimal performance
-  - [ ] Cross-platform deployment including WASM support
 
-#### Local, Private AI-Powered Background Removal
+## ❤️ Support Open Source
 
-- [ ] **Commercial-Use Background Removal**: Local ONNX models for Bilateral Reference for High-Resolution Dichotomous Image Segmentation ([BiRefNet](https://github.com/ZhengPeng7/BiRefNet))
-  - [ ] Optional mask output (mask can be created and saved, in addition to the removed-background image)
-- [ ] **Non-Commercial Background Removal**: Local ONNX model ([briaai/RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4)) for personal and non-commercial use
+Panda Pixel is developed and maintained with love for privacy, accessibility, and open technology. If you find this project valuable, please consider:
+
+- ⭐ **Starring the repo** to help others discover it  [![Star on GitHub](https://img.shields.io/badge/Star-on_GitHub-blue?logo=github)](https://github.com/bmurrtech/panda-pixel-rs)
+- 🐼 **Sharing with friends** and creators who care about image quality & privacy [![Share this project](https://img.shields.io/badge/Share-this_project-1DA1F2?logo=share)](https://github.com/bmurrtech/panda-pixel-rs)
+- 📝 **[Open an Issue](https://github.com/bmurrtech/panda-pixel-rs/issues/new/choose)** or **[Submit a Pull Request](https://github.com/bmurrtech/panda-pixel-rs/compare)**—contributions, feedback, and ideas are always welcome!
+- ☕ **[Buying me a coffee](https://www.buymeacoffee.com/bmurrtech)**, or **[Ko-fi](https://ko-fi.com/bmurrtech)** for a little developer fuel  
+
+<p align="center">
+
+  <a href="https://www.buymeacoffee.com/bmurrtech" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20the%20project-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee">
+  </a>
+
+  <a href="https://ko-fi.com/bmurrtech" target="_blank" rel="noopener">
+    <img src="https://img.shields.io/badge/Ko--fi-Support%20the%20project-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
+  </a>
+
+</p>
+
+## 🤝 Contributing
+
+Please see [docs/contributing.md](docs/contributing.md) for setup, layout, web vs desktop, and PR expectations. See [docs/testing.md](docs/testing.md) for `cargo test`, Clippy/fmt, WASM checks, and smoke workflows.
 
 ## ⭐ Acknowledgments
 
@@ -290,44 +234,38 @@ Tests cover:
 
 ## 📄 License
 
-Open source under the **GNU AGPLv3**—see [LICENSE](LICENSE) for terms.
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
 
-### License Philosophy (Plain English)
+This repository is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE). The badge links to the official license text; the [`LICENSE`](LICENSE) file in this repo is the binding copy for this project.
 
-This project is licensed under GNU AGPLv3.
+### License permissions and restrictions
 
-That means:
+*Keeping open-source open.*
 
-- **You may use it commercially.**
-- **You may build a paid SaaS product with it.**
-- **You may modify it.**
+| Use case | Permitted | Notes / conditions |
+|----------|-----------|-------------------|
+| Private / internal use | ✅ | No obligation to publish changes if you do not distribute or offer the software as a network service to others. |
+| Modify for own private use | ✅ | Same as above; obligations attach when you distribute or run modified code as a networked service for users. |
+| Share / distribute (unmodified) | ✅ | Must include AGPL license and corresponding source (or a written offer compliant with AGPL). |
+| Distribute with modifications | ✅ | Modified source must be available under AGPL-3.0 to recipients. |
+| Provide as SaaS / network service | ✅ | AGPL-3.0 requires that users interacting with your modified version over a network can obtain the complete corresponding source. |
+| Closed / proprietary redistribution | ❌ | Public distribution or SaaS without full corresponding source under AGPL terms is not allowed. |
+| Restricting access to source for users you serve | ❌ | Network users must be able to get the complete corresponding source as AGPL defines. |
+| Hosted service without source sharing | ❌ | Must provide source to network users as required by AGPL-3.0 (remote network interaction). |
+| Sublicensing under more restrictive terms | ❌ | AGPL terms must flow through; you cannot strip copyleft. |
 
-However:
+### Commercial / proprietary licensing
 
-- **Hosted Service or SaaS:** If you run this software as part of a hosted service or SaaS product, you must provide your users access to the corresponding source code, including any modifications you have made.
-- **Distribution:** If you distribute this software (or a derivative), you must include the same license and provide source code.
-- **Openness:** This ensures improvements remain **open** and the community benefits from derivative work.
+If you need a **proprietary** or **non-AGPL** license (for example commercial use without copyleft, closed-source distribution, or SaaS without the AGPL source-offer obligations), **commercial licenses may be available.** Open a [GitHub Issue](https://github.com/bmurrtech/panda-pixel-rs/issues/new/choose) to discuss licensing and pricing.
 
-If you want to use this project in a proprietary or closed-source product without AGPL obligations, a commercial license is available.
+---
 
-#### Commercial / Proprietary Licensing
+## ⚠️ Disclaimer
 
-Need any of the following?
-- Commercial use **without** copyleft obligations
-- Proprietary or closed-source usage
-- SaaS or hosted deployment without source disclosure
-- Embedded or internal distribution without attribution
+This software is provided **as-is**, without warranty of any kind, express or implied. The author(s) are **not liable for any damages or losses** arising from the use of this project, including but not limited to data loss, system problems, or legal issues.
 
-**Commercial licenses are available.**
+By using this software, **you accept full responsibility** for its use and agree to comply with the license terms and any **terms of service or usage restrictions of bundled or accessible dependencies** (for example, commercial vs. non-commercial use limitations of models such as BiRefNet or BRIA RMBG).  
+- **You must ensure your use of integrated models and libraries (e.g., BiRefNet, RMBG-1.4, ONNX models) complies with their specific licenses and terms of use.**
+- Some models are restricted to **personal/non-commercial use only**; using them for commercial purposes may violate upstream terms and is your sole responsibility.
 
-These licenses waive AGPL-3.0 copyleft requirements, including:
-- No obligation to publish source code
-- No public attribution requirements
-- SaaS, hosted, and embedded use allowed
-
-**How to obtain a commercial license:**
-_Open a GitHub Issue in this project’s repository to contact the maintainers for licensing and pricing details._
-
-## 🤝 Contributing
-
-Please see [docs/contributing.md](docs/contributing.md) for setup, layout, web vs desktop, and PR expectations. See [docs/testing.md](docs/testing.md) for `cargo test`, Clippy/fmt, WASM checks, and smoke workflows.
+See each dependency’s repository or documentation for complete licensing information and terms of use.

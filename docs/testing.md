@@ -14,6 +14,14 @@ cargo test --workspace
 
 Run it before every push, along with format, Clippy, and WASM checks below.
 
+Automated tests focus on shared Rust crates: PNG and JPEG compression, conversions (WebP, AVIF, TIFF, BMP, ICO), quality-range parsing, and compression presets. WASM UIs rely on compile checks plus [manual smoke](#manual-smoke-browser--api).
+
+---
+
+## Quick web check (two terminals)
+
+From the repository root, a minimal loop is **Terminal 1:** `cargo run -p api` and **Terminal 2:** `make dev-web` (see the repo-root `Makefile`: `dev-web` runs `trunk serve` in `apps/web`). Set API `PORT` and `CORS_ALLOWED_ORIGINS` to match the URL Trunk prints so the browser can reach the API; see [Manual smoke](#manual-smoke-browser--api) for a known-good configuration.
+
 ---
 
 ## Testing Strategy
